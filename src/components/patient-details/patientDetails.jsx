@@ -10,6 +10,7 @@ import ABHACard from "../creation/ABHACard";
 const PatientDetails = (props) => {
     const [selectedPatient, setSelectedPatient] = useState({});
     const [patients, setPatients] = useState([]);
+    const [showABHACard, setShowABHACard] = useState(false);
 
     const ndhmDetails = props.ndhmDetails;
 
@@ -108,7 +109,8 @@ const PatientDetails = (props) => {
                 <div className={checkIfNotNull(selectedPatient) ? 'greyed-out' : ''}>
                     <b>ABDM Record: </b>
                     <PatientInfo patient={ndhmDetails}/><br/>
-                    {!props.isVerifyABHAThroughFetchModes && props.isVerifyABHAThroughFetchModes !== undefined &&
+                    <div className='center'><button onClick={()=> setShowABHACard(true)} disabled={showABHACard}>Get ABHA Card</button></div>
+                    {(!props.isVerifyABHAThroughFetchModes && props.isVerifyABHAThroughFetchModes !== undefined) || showABHACard &&
                     <div className="abha-card">
                         <ABHACard  healthIdNumber={ndhmDetails?.healthIdNumber}/>
                     </div>}

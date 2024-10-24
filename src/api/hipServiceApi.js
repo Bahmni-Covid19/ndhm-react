@@ -219,12 +219,13 @@ export const generateAadhaarOtp = async (aadhaar) => {
     }
 }
 
-export const verifyAadhaarOtp = async (otp) => {
+export const verifyAadhaarOtpAndCreateABHA = async (otp,mobile) => {
     const data = {
-        "otp": otp
+        "otp": otp,
+        "mobile": mobile
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.verifyAadhaarOtp,data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verifyAadhaarOtpAndCreateABHA,data, Constants.headers);
         return response;
     }
     catch (error) {
@@ -240,7 +241,7 @@ export const generateMobileOtp = async (mobile) => {
         "mobile": mobile
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.checkAndGenerateMobileOtp,data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.generateABHAMobileOTP,data, Constants.headers);
         return response;
     }
     catch (error) {
@@ -257,19 +258,6 @@ export const verifyMobileOtp = async (otp) => {
     };
     try {
         const response = await axios.post(Constants.hipServiceUrl + Constants.verifyMobileOTP,data, Constants.headers);
-        return response;
-    }
-    catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
-    }
-}
-
-export const createABHA = async () => {
-    try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.createHealthIdByAdhaar, Constants.headers);
         return response;
     }
     catch (error) {
@@ -389,13 +377,9 @@ export const transaction = async (authMethod) => {
     }
 }
 
-export const createABHAAddress = async (phrAddress,preferred) => {
-    const data = {
-        "phrAddress": phrAddress,
-        "preferred": preferred
-    };
+export const getAbhaAddressSuggestions = async () => {
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.createABHAAddress, data, Constants.headers);
+        const response = await axios.get(Constants.hipServiceUrl + Constants.getAbhaAddressSuggestions);
         return response;
     }
     catch (error) {
@@ -406,9 +390,12 @@ export const createABHAAddress = async (phrAddress,preferred) => {
     }
 }
 
-export const checkIfABHAAddressExists = async (phrAddress) => {
+export const createABHAAddress = async (abhaAddress) => {
+    const data = {
+        "abhaAddress": abhaAddress
+    };
     try {
-        const response = await axios.get(Constants.hipServiceUrl + Constants.checkIfABHAAddressExists + "?phrAddress=" + phrAddress, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.createABHAAddress, data, Constants.headers);
         return response;
     }
     catch (error) {

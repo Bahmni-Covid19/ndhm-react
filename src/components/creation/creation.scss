@@ -9,7 +9,7 @@
 
   .abha-creation-otp-verify {
     display: flex;
-    padding-top: 30px;
+    padding-top: 20px;
   }
   .select-option {
     padding-top: 20px;
@@ -50,6 +50,10 @@
   .create-default-healthId {
     margin-left: 40%;
     margin-top: 5%
+  }
+  .input-and-label {
+    display: flex;
+    padding-bottom: 20px;
   }
 }
 

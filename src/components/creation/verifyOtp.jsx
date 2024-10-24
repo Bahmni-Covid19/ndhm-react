@@ -23,7 +23,7 @@ const VerifyOTP = (props) => {
                     <div className="otp-verify-input">
                         <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler} disabled={props.disabled}/>
                     </div>
-                    <button type="button" type="submit" onClick={send} disabled={props.disabled}>Confirm</button>
+                    <button type="button" onClick={send} disabled={props.disabled}>Confirm</button>
                 </div>
             </div>
         </div>

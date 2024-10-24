@@ -1,115 +1,115 @@
-import React, {useState} from "react";
-import './creation.scss';
+import React, { useState, useEffect } from "react";
+import "./creation.scss";
 import Spinner from "../spinner/spinner";
-import {checkIfABHAAddressExists, createABHAAddress, createDefaultHealthId} from "../../api/hipServiceApi";
+import {
+	createABHAAddress,
+	getAbhaAddressSuggestions,
+} from "../../api/hipServiceApi";
 import Footer from "./Footer";
-import {cmSuffixProperty} from "../../api/constants";
+import { cmSuffixProperty } from "../../api/constants";
+import { Autocomplete, TextField, InputAdornment } from "@mui/material";
 
 const CreateABHAAddress = (props) => {
-    const [loader, setLoader] = useState(false);
-    const [error, setError] = useState('');
-    const [newAbhaAddress, setNewAbhaAddress] = [props.newAbhaAddress,props.setNewAbhaAddress];
-    const [isPreferred, setIsPreferred]= useState(false);
-    const cmSuffix = localStorage.getItem(cmSuffixProperty)
+	const [loader, setLoader] = useState(false);
+	const [error, setError] = useState("");
+	const [newAbhaAddress, setNewAbhaAddress] = [
+		props.newAbhaAddress,
+		props.setNewAbhaAddress,
+	];
+	const cmSuffix = localStorage.getItem(cmSuffixProperty);
+    const [lodingAbhaAddressSuggestions, setLodingAbhaAddressSuggestions] = useState(false);
+	const [abhaAddressSuggestions, setAbhaAddressSuggestions] = useState([]);
 
-    function OnChangeHandler(e) {
-        setNewAbhaAddress(e.target.value);
-        setError('');
-    }
+	useEffect(async () => {
+		setLodingAbhaAddressSuggestions(true);
+		let response = await getAbhaAddressSuggestions();
+		if (response.data !== undefined) {
+			setLodingAbhaAddressSuggestions(false);
+			const fetchedOptions = response.data.abhaAddressList.map((item) => ({
+				label: item,
+				value: item,
+			}));
+			setAbhaAddressSuggestions(fetchedOptions);
+		} else {
+			setLodingAbhaAddressSuggestions(false);
+			console.error("An error occurred while getting suggestions");
+		}
+	}, []);
 
-    async function onCreate() {
-        setError('');
-        if (newAbhaAddress === '') {
-            setError("ABHA Address cannot be empty")
-        } else if(newAbhaAddress.length > 3) {
-            setLoader(true);
-            var ifABHAExists = await checkIfABHAAddressExists(newAbhaAddress);
-            if (ifABHAExists) {
-                setLoader(false);
-                if (ifABHAExists.data !== undefined) {
-                    if (!ifABHAExists.data) {
-                        setLoader(true);
-                        var response = await createABHAAddress(newAbhaAddress, isPreferred);
-                        if (response) {
-                            setLoader(false);
-                            if (response.data === undefined) {
-                                processingError(response);
-                            } else {
-                                setNewAbhaAddress(newAbhaAddress.concat(cmSuffix));
-                                props.setABHAAddressCreated(true);
-                            }
-                        }
-                    } else {
-                        setError("ABHA Address already Exists");
-                    }
-                } else {
-                    processingError(ifABHAExists);
-                }
-            }
-        }
-        else {
-            setError("ABHA Address should have minimum of 4 characters");
-        }
-    }
+	async function onCreate() {
+		setError("");
+		if (newAbhaAddress === "") {
+			setError("ABHA Address cannot be empty");
+		} else if (newAbhaAddress.length > 3) {
+			setLoader(true);
+			var response = await createABHAAddress(newAbhaAddress);
+			setLoader(false);
+			if (response.data === undefined) {
+				processingError(response);
+			} else {
+				setNewAbhaAddress(newAbhaAddress.concat(cmSuffix));
+				props.setABHAAddressCreated(true);
+			}
+		} else {
+			setError("ABHA Address should have minimum of 4 characters");
+		}
+	}
 
-    async function createDefault() {
-        setLoader(true);
-        setError('');
-        const response = await createDefaultHealthId();
-        if (response.data !== undefined) {
-            setNewAbhaAddress(response.data.healthId);
-            props.setABHAAddressCreated(true);
-        }
-        else {
-            setError(response.details[0].message || response.message)
-        }
-        setLoader(false);
-    }
+	function processingError(response) {
+		if (response.error !== undefined) setError(response.error.message);
+		else setError("An error occurred while processing your request");
+	}
 
-    function processingError(response){
-        if (response.details !== undefined && response.details.length > 0)
-            setError(response.details[0].message)
-        else
-            setError("An error occurred while processing your request")
-    }
-
-    function OnClick(){
-        setIsPreferred(!isPreferred);
-    }
-
-    return (
-        <div>
-            <div className="abha-address" >
-                <label htmlFor="abhaAdddress">Enter new ABHA ADDRESS </label>
-                <div className="abha-adddress-input" >
-                    <div className="new-abha-address-input">
-                        <input type="text" id="abhaAdddress" name="abhaAdddress" value={newAbhaAddress} onChange={OnChangeHandler} />
-                        <span className="abha-address-suffix">{cmSuffix}</span>
-                    </div>
-                </div>
-            </div>
-            <div className="center" >
-                <input type="checkbox" id="preferred" checked={isPreferred} className="checkbox" onChange={OnClick}/>
-                <span className="preferred"> Preferred </span>
-            </div>
-            <p className="message">Click on the check box to make the above abha-address as a default</p>
-            <div className="center">
-                <button type="button" className="proceed" onClick={onCreate}>Create</button>
-            </div>
-            {props?.showCreateDefaultOption !== undefined && props?.showCreateDefaultOption &&
-                <div>
-                    <div className="alternative-text">
-                        OR
-                    </div>
-                    <div className="create-default-healthId">
-                        <button name="default-healthId-btn" type="button" onClick={createDefault}>Create Default ABHA Address</button>
-                    </div>
-                </div>}
-            {loader && <Spinner />}
-            {error !== '' && <h6 className="error">{error}</h6>}
-            <Footer setBack={props.setBack} />
-        </div>
-    );
-}
+	return (
+		<div>
+			<div className="abha-address">
+				<label htmlFor="abhaAdddress">Enter custom ABHA Address or Select from suggestions </label>
+				<div className="abha-adddress-input">
+					<div>
+						<Autocomplete
+							id="free-solo-demo"
+							freeSolo
+							options={abhaAddressSuggestions.map((option) => option.label)}
+							loading={lodingAbhaAddressSuggestions}
+							inputValue={newAbhaAddress}
+							onInputChange={(event, value) => setNewAbhaAddress(value)}
+							renderInput={(params) => (
+								<TextField
+									{...params}
+									id="abha-address-input"
+									label="ABHA Address"
+									InputProps={{
+										...params.InputProps,
+										endAdornment: (
+											<InputAdornment position="end">{cmSuffix}</InputAdornment>
+										),
+									}}
+									noOptionsText={
+										lodingAbhaAddressSuggestions
+											? "Getting suggestions..."
+											: "No suggestions"
+									}
+								/>
+							)}
+						/>
+					</div>
+				</div>
+			</div>
+			<div className="center" style={{ paddingTop: "20px" }}>
+				<button
+					type="button"
+					className="proceed"
+					disabled={newAbhaAddress === ""}
+					onClick={onCreate}
+				>
+					Create
+				</button>
+			</div>
+			{loader && <Spinner />}
+			{error !== "" && <h6 className="error">{error}</h6>}
+			<Footer setBack={props.setBack} />
+		</div>
+	);
+};
 
 export default CreateABHAAddress;

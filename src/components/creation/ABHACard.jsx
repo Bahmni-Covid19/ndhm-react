@@ -14,13 +14,13 @@ const ABHACard = (props) => {
     const [cardView, setView] = useState(false);
     const [downloadLoader, setDownloadLoader] = useState(false);
     let imgUrl = null;
+    const [isCardInitialised, setIsCardInitialised] = useState(false);
 
     async function getPngCard() {
         if(imgUrl == null) {
             var response = await getCard();
             if (response) {
                 setLoader(false);
-                setDownloadLoader(false);
                 if (response.data === undefined) {
                     if (response.details !== undefined && response.details.length > 0)
                         setError(response.details[0].message)
@@ -30,6 +30,7 @@ const ABHACard = (props) => {
                     const blob = new Blob([response.data]);
                     const url = URL.createObjectURL(blob);
                     imgUrl = url;
+                    setIsCardInitialised(true);
                 }
             }
         }
@@ -39,6 +40,7 @@ const ABHACard = (props) => {
         setDownloadLoader(true);
         setIsCardDownloaded(false);
         await getPngCard();
+        setDownloadLoader(false);
         if (imgUrl !== null) {
             var a = document.createElement("a");
             document.body.appendChild(a);
@@ -70,7 +72,7 @@ const ABHACard = (props) => {
                  {cardView && <img src={imgSrc} width="500" height="300" />}
             </div>
             <div className="downloadButton">
-                {!downloadLoader &&
+                {(!downloadLoader && isCardInitialised) &&
                 <button type="button" className="proceed" onClick={download}>
                     Download ABHA Card
                 </button>}
