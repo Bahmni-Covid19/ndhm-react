@@ -49,7 +49,7 @@ const VerifyOTPAndCreateABHA = (props) => {
 		} else {
 			let abhaProfile = response.data.abhaProfile;
 			setPatient(response.data.abhaProfile);
-			if (abhaProfile.mobile === null) {
+			if (!abhaProfile.mobile) {
 				setRequireMobileVerification(true);
 			} else {
 				setIsMobileVerified(true);
