@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as Constants from './constants';
+import { parseAPIError } from './apiUtils';
 export const getAuthModes = async (healthId) => {
     let error = isValidHealthId(healthId);
     if (error) {
@@ -212,10 +213,7 @@ export const generateAadhaarOtp = async (aadhaar) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 
@@ -229,10 +227,7 @@ export const verifyAadhaarOtpAndCreateABHA = async (otp,mobile) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 
@@ -245,10 +240,7 @@ export const generateMobileOtp = async (mobile) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 
@@ -261,10 +253,7 @@ export const verifyMobileOtp = async (otp) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 
@@ -276,10 +265,7 @@ export const getCard = async () => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 
@@ -383,10 +369,7 @@ export const getAbhaAddressSuggestions = async () => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 
@@ -399,10 +382,7 @@ export const createABHAAddress = async (abhaAddress) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 

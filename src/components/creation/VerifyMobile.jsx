@@ -44,11 +44,8 @@ const VerifyMobile = (props) => {
             var response = await verifyMobileOtp(otp);
             if (response) {
                 setLoader(false);
-                if (response.data === undefined) {
-                    if (response.details !== undefined && response.details.length > 0)
-                        setError(response.details[0].message)
-                    else
-                        setError("An error occurred while processing your request")
+                if (response.error) {
+                    setError(response.error.message);
                 }
                 else {
                     if(response.data.authResult === "success"){

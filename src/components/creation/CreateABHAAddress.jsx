@@ -44,8 +44,8 @@ const CreateABHAAddress = (props) => {
 			setLoader(true);
 			var response = await createABHAAddress(newAbhaAddress);
 			setLoader(false);
-			if (response.data === undefined) {
-				processingError(response);
+			if (response.error) {
+				setError(response.error.message);
 			} else {
 				setNewAbhaAddress(newAbhaAddress.concat(cmSuffix));
 				props.setABHAAddressCreated(true);
@@ -53,11 +53,6 @@ const CreateABHAAddress = (props) => {
 		} else {
 			setError("ABHA Address should have minimum of 4 characters");
 		}
-	}
-
-	function processingError(response) {
-		if (response.error !== undefined) setError(response.error.message);
-		else setError("An error occurred while processing your request");
 	}
 
 	return (
