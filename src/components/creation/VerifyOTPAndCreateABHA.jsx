@@ -4,6 +4,7 @@ import Spinner from "../spinner/spinner";
 import { verifyAadhaarOtpAndCreateABHA } from "../../api/hipServiceApi";
 import VerifyMobile from "./VerifyMobile";
 import LinkABHAAddress from "./LinkABHAAddress";
+import {GoVerified} from "react-icons/all";
 
 const VerifyOTPAndCreateABHA = (props) => {
 	const [otp, setOtp] = useState("");
@@ -16,6 +17,8 @@ const VerifyOTPAndCreateABHA = (props) => {
 	const [isMobileVerified, setIsMobileVerified] = useState(false);
 	const [patient, setPatient] = useState({});
 	const [mappedPatient, setMappedPatient] = useState({});
+	const [abhaCreationResponseData, setAbhaCreationResponseData] = useState(null);
+	const [proceed, setProceed] = useState(false);
 
 	function otpOnChangeHandler(e) {
 		setOtp(e.target.value);
@@ -47,14 +50,20 @@ const VerifyOTPAndCreateABHA = (props) => {
 		if (response.error) {
 			setError(response.error.message);
 		} else {
-			let abhaProfile = response.data.abhaProfile;
-			setPatient(response.data.abhaProfile);
-			if (!abhaProfile.mobile) {
-				setRequireMobileVerification(true);
-			} else {
-				setIsMobileVerified(true);
-			}
+			setConfirmDisabled(true);
+			setAbhaCreationResponseData(response.data);
 		}
+	}
+
+	function onProceed() {
+		let abhaProfile = abhaCreationResponseData.abhaProfile;
+		setPatient(abhaCreationResponseData.abhaProfile);
+		if (!abhaProfile.mobile) {
+			setRequireMobileVerification(true);
+		} else {
+			setIsMobileVerified(true);
+		}
+		setProceed(true);
 	}
 
 	function onMobileVerifySuccess() {
@@ -140,6 +149,21 @@ const VerifyOTPAndCreateABHA = (props) => {
 				</div>
 			)}
 			{isLoading && <Spinner />}
+			{abhaCreationResponseData && !proceed && (
+				<div>
+					<p className="note success">
+						<GoVerified /> <strong>{abhaCreationResponseData.message}</strong>
+					</p>
+					<p className="note">
+						ABHA Number: {abhaCreationResponseData.abhaProfile.abhaNumber}
+					</p>
+					<div className="center">
+						<button type="button" onClick={onProceed}>
+							Proceed
+						</button>
+					</div>
+				</div>
+			)}
 			{requireMobileVerification && (
 				<VerifyMobile mobile={mobile} onVerifySuccess={onMobileVerifySuccess} />
 			)}
