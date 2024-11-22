@@ -96,6 +96,7 @@ const PatientInfo = (props) => {
             Mobile: {getPhoneNumber()}
             {patient?.id !== undefined && <span><br/>ABHA Address: {patient?.id}</span>}
             {patient?.healthId !== undefined && <span><br/>ABHA Address: {patient?.healthId}</span>}
+            {patient?.abhaAddress !== undefined && <span><br/>ABHA Address: {patient?.abhaAddress}</span>}
             {healthIdNumber !== undefined && healthIdNumber !== null && <span><br/>ABHA Number: {healthIdNumber}</span>}
         </p>
     )

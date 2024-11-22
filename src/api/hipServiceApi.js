@@ -28,7 +28,7 @@ export const saveDemographics = async (healthId,ndhmDetails) => {
             "name": ndhmDetails.name,
             "gender": ndhmDetails.gender,
             "dateOfBirth": ndhmDetails.dateOfBirth,
-            "phoneNumber": ndhmDetails.identifiers ? ndhmDetails.identifiers[0].value : null
+            "phoneNumber": getPhoneNumber(ndhmDetails)
     };
 
     try {
@@ -117,7 +117,7 @@ export const fetchPatientDetailsFromBahmni = async (patient) => {
         "patientName": patient.name,
         "patientYearOfBirth": new Date(patient.dateOfBirth).getFullYear(),
         "patientGender": patient.gender,
-        "phoneNumber": encodeURI((patient?.identifiers !== undefined && patient?.identifiers.length > 0) ? patient?.identifiers[0].value : "")
+        "phoneNumber": encodeURI(getPhoneNumber(patient))
     }
     try {
         const response = await axios.get(Constants.bahmniUrl + Constants.existingPatientUrl, { params }, Constants.headers);
@@ -175,7 +175,7 @@ export const IsValidHealthId = (healthId) => {
 
 export const getPatientQueue = async () => {
     try {
-        const response = await axios.get(Constants.hipServiceUrl + Constants.patientProfileFetch);
+        const response = await axios.get(Constants.hipServiceUrl + Constants.fetchPatientQueue);
         return response.data;
     }
     catch (error) {
@@ -556,4 +556,14 @@ export const checkIfHealthNumberExists = async (patientUuid) => {
     } catch (error) {
         return Constants.openMrsDown;
     }
+}
+
+const getPhoneNumber = (patient) => {
+    if (patient?.phoneNumber !== undefined)
+        return patient.phoneNumber;
+    const mobileIdentifier = patient.identifiers !== undefined && patient.identifiers.find(identifier => {
+        return identifier.type === 'MOBILE' || identifier.type === 'MR';
+    });
+
+    return mobileIdentifier ? mobileIdentifier.value : '-';
 }

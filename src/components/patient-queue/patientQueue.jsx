@@ -6,6 +6,7 @@ import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
 import Time from "./Time";
 import PatientInfo from "../patient-details/patientInfo";
 import {getDate} from "../Common/DateUtil";
+import Spinner from "../spinner/spinner";
 
 
 const PatientQueue = (props) => {
@@ -14,32 +15,41 @@ const PatientQueue = (props) => {
     const [selectedPatient, setSelectedPatient] = useState({});
     const [matchFound, setMatchFound] = useState(null);
     const [back, setBack] = useState(false);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
     useEffect(() => {
         getPatient()
     },[]);
 
     async function getPatient(){
+        setLoading(true);
         const res = await getPatientQueue();
+        setLoading(false);
         if (res.error === undefined) {
             setPatients(res);
+            setError("");
+        }
+        else {
+            setError("Something went wrong while fetching patient queue. Please try again later");
         }
     }
 
     async function getMatchingPatient(patient) {
-        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(patient.healthId);
+        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(patient.abhaAddress);
         if (matchingPatientId.Error === undefined && matchingPatientId.validPatientId === true){
            setMatchFound(matchingPatientId.patientUuid);
         }
         const ndhm = {
-            id:  patient.healthId,
+            id:  patient.abhaAddress,
             gender: patient.gender,
             name: patient.name,
             isBirthDateEstimated: patient?.monthOfBirth == null || patient?.dayOfBirth == null,
             dateOfBirth: getDate(patient),
             address: patient.address,
             identifiers: patient.identifiers,
-            healthIdNumber: patient.healthIdNumber
+            healthIdNumber: patient.abhaNumber,
+            phoneNumber: patient.phoneNumber
         };
        setSelectedPatient(ndhm);
     }
@@ -58,7 +68,9 @@ const PatientQueue = (props) => {
 
     return(
         <div>
-            {patient.length == 0 && 
+            {loading && <Spinner/>}
+            {error !== "" && <h6 className="error">{error}</h6>}
+            {patient.length == 0 && !loading && error === "" && 
                 <center><h3>No patient found</h3></center>
             }
             {patient.length > 0 && !checkIfNotNull(selectedPatient) && <table>
