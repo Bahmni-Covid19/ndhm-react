@@ -46,7 +46,7 @@ const PatientQueue = (props) => {
             name: patient.name,
             isBirthDateEstimated: patient?.monthOfBirth == null || patient?.dayOfBirth == null,
             dateOfBirth: getDate(patient),
-            address: patient.address,
+            address: {"district": patient.address?.district, "state": patient.address?.state},
             identifiers: patient.identifiers,
             healthIdNumber: patient.abhaNumber,
             phoneNumber: patient.phoneNumber
