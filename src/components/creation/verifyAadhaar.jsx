@@ -6,6 +6,7 @@ import AadhaarConsent from "./AadhaarConsent";
 import AuthModes from "./AuthModes";
 import DemoAuth from "../demo-auth/demoAuth";
 import VerifyOTPAndCreateABHA from "./VerifyOTPAndCreateABHA";
+import { isAadhaarValid } from "../Common/AadhaarValidation";
 
 const VerifyAadhaar = props => {
 
@@ -32,11 +33,11 @@ const VerifyAadhaar = props => {
 
     async function getAuthModes(){
         setAadhaarError('');
-        if (aadhaar === '') {
-            setAadhaarError("Aadhaar number cannot be empty")
-        }
-        else {
+        if(isAadhaarValid(aadhaar)) {
             setShowAuthMode(true);
+        }
+        else{
+            setAadhaarError("Invalid Aadhaar Number");
         }
     }
 
@@ -46,11 +47,8 @@ const VerifyAadhaar = props => {
         var response = await generateAadhaarOtp(aadhaar);
         if(response){
             setLoader(false);
-            if(response.data === undefined){
-                if(response.details !== undefined && response.details.length > 0)
-                   setError(response.details[0].message)
-                else
-                    setError("An error occurred while processing your request")
+            if(response.error){
+                setError(response.error.message);
             }
             else {
                 setShowOtpInput(true);
