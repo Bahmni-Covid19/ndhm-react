@@ -24,3 +24,8 @@ export function mapPatient(patient){
         uuid: patient?.uuid
     };
 }
+
+export function getCityFromAddressLine(addressLine){
+    let addressParts = addressLine.split(',');
+    return addressParts.length > 3 ? addressParts[addressParts.length - 3] : undefined;
+}
