@@ -13,6 +13,7 @@ const PatientDetails = (props) => {
     const [showABHACard, setShowABHACard] = useState(false);
 
     const ndhmDetails = props.ndhmDetails;
+    const enableABHACardView = props.enableABHACardView;
 
     useEffect(() => {
         if(ndhmDetails?.uuid === undefined || ndhmDetails?.uuid === "") {
@@ -115,8 +116,9 @@ const PatientDetails = (props) => {
                 <div className={checkIfNotNull(selectedPatient) ? 'greyed-out' : ''}>
                     <b>ABDM Record: </b>
                     <PatientInfo patient={ndhmDetails}/><br/>
-                    <div className='center'><button onClick={()=> setShowABHACard(true)} disabled={showABHACard}>Get ABHA Card</button></div>
-                    {(!props.isVerifyABHAThroughFetchModes && props.isVerifyABHAThroughFetchModes !== undefined) || showABHACard &&
+                    {enableABHACardView &&
+                    <div className='center'><button onClick={()=> setShowABHACard(true)} disabled={showABHACard}>Get ABHA Card</button></div>}
+                    {showABHACard &&
                     <div className="abha-card">
                         <ABHACard  healthIdNumber={ndhmDetails?.healthIdNumber}/>
                     </div>}
