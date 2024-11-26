@@ -27,5 +27,5 @@ export function mapPatient(patient){
 
 export function getCityFromAddressLine(addressLine){
     let addressParts = addressLine.split(',');
-    return addressParts.length > 3 ? addressParts[addressParts.length - 3] : undefined;
+    return addressParts.length > 3 ? addressParts[addressParts.length - 3].trim() : undefined;
 }
