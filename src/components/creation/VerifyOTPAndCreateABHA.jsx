@@ -5,6 +5,7 @@ import { verifyAadhaarOtpAndCreateABHA } from "../../api/hipServiceApi";
 import VerifyMobile from "./VerifyMobile";
 import LinkABHAAddress from "./LinkABHAAddress";
 import {GoVerified} from "react-icons/all";
+import { getCityFromAddressLine } from "../Common/patientMapper";
 
 const VerifyOTPAndCreateABHA = (props) => {
 	const [otp, setOtp] = useState("");
@@ -78,7 +79,7 @@ const VerifyOTPAndCreateABHA = (props) => {
 			},
 		];
 		var address = {
-			line: patient.address,
+			city: getCityFromAddressLine(patient.address),
 			district: patient?.districtName,
 			state: patient?.stateName,
 			pincode: patient?.pinCode,
