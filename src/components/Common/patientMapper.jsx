@@ -13,8 +13,8 @@ export function mapPatient(patient){
         pincode: patient?.pincode
     };
     return {
-        healthIdNumber: patient?.healthIdNumber,
-        id: patient?.healthId,
+        healthIdNumber: patient?.abhaNumber,
+        id: patient?.preferredAbhaAddress,
         gender: patient.gender,
         name: patient.name,
         isBirthDateEstimated: patient?.birthdate !== undefined ? false : (patient?.monthOfBirth == null || patient?.dayOfBirth == null),

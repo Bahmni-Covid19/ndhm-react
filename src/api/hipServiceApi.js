@@ -464,7 +464,7 @@ export const updateHealthId = async (healthId) => {
 
 export const mobileGenerateOtp = async (mobileNumber) => {
     const data = {
-        "mobile": mobileNumber
+        "mobileNumber": mobileNumber
     };
     try {
         const response = await axios.post(Constants.hipServiceUrl + Constants.generateMobileOtp, data, Constants.headers);
@@ -495,12 +495,25 @@ export const mobileVerifyOtp = async (otp) => {
     }
 };
 
-export const getPatientProfile = async (healthId) => {
+export const verifyAbhaAccount = async (abhaNumber) => {
     const data = {
-        "healthId": healthId
+        "abhaNumber": abhaNumber
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.getPatientProfileInfo, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verifyAbhaAccount, data, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        if (error.response !== undefined)
+            return error.response.data;
+        else
+            return Constants.serviceUnavailableError;
+    }
+};
+
+export const getPatientProfile = async () => {
+    try {
+        const response = await axios.get(Constants.hipServiceUrl + Constants.getPatientProfileInfo, Constants.headers);
         return response;
     }
     catch (error) {
