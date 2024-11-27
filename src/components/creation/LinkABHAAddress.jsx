@@ -133,7 +133,7 @@ const LinkABHAAddress = (props) => {
              <CreateABHAAddress setBack={setBack} newAbhaAddress={newAbhaAddress} setNewAbhaAddress={setNewAbhaAddress} setABHAAddressCreated={setABHAAddressCreated} />
             }
             {link && <VerifyMobileEmail patient={patient} setBack={setBack} mappedPatient={props.mappedPatient}/>}
-            {proceed && <PatientDetails ndhmDetails={props.mappedPatient} setBack={ !abhaAddressCreated ? setBack : undefined}/>}
+            {proceed && <PatientDetails ndhmDetails={props.mappedPatient} setBack={ !abhaAddressCreated ? setBack : undefined} enableABHACardView={true}/>}
         </div>
     );
 }
