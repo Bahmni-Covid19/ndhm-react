@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {authInit, fetchGlobalProperty, healthIdAuthInit} from '../../api/hipServiceApi';
+import {authInit, fetchGlobalProperty, abhaNumberRequestOtp} from '../../api/hipServiceApi';
 import OtpVerification from '../otp-verification/otpVerification';
 import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
@@ -32,7 +32,7 @@ const AuthModes = (props) => {
         setLoader(true);
         if(!props.isHealthNumberNotLinked){
             setShowError(false);
-            const response = await healthIdAuthInit(id, selectedAuthMode);
+            const response = await abhaNumberRequestOtp(id, selectedAuthMode);
             if (response.data !== undefined) {
                 setShowOtpField(true);
             }

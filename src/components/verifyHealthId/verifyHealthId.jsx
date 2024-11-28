@@ -17,7 +17,7 @@ import {enableHealthIdVerification, enableHealthIdVerificationThroughMobileNumbe
 import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumber";
 
 const VerifyHealthId = () => {
-    const [id, setId] = useState('');
+    const [abhaNumber, setAbhaNumber] = useState('');
     const [authModes, setAuthModes] = useState([]);
     const supportedHealthIdAuthModes = ["MOBILE_OTP", "AADHAAR_OTP"];
     const [showAuthModes, setShowAuthModes] = useState(false);
@@ -41,15 +41,15 @@ const VerifyHealthId = () => {
     const [isDisabled, setIsDisabled] = useState(false);
     const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
 
-    function idOnChangeHandler(e) {
-        setId(e.target.value);
+    function abhaNumberOnChangeHandler(e) {
+        setAbhaNumber(e.target.value);
     }
 
-    async function verifyHealthId() {
+    async function verifyAbhaNumber() {
         setError('');
         setLoader(true);
         setShowError(false);
-        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(id);
+        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(abhaNumber);
         const healthIdStatus = matchingPatientId.Error !== undefined ? await getHealthIdStatus(matchingPatientId.patientUuid) : false;
         if (matchingPatientId.Error === undefined) {
             if(healthIdStatus === true)
@@ -59,7 +59,9 @@ const VerifyHealthId = () => {
                 setMatchingPatientUuid(matchingPatientId.patientUuid);
             } else {
                 setMatchingPatientFound(false);
-                await searchByHealthId();
+                setShowAuthModes(true);
+                setAuthModes(['AADHAAR_OTP','MOBILE_OTP']);
+
             }
         } else {
             setShowError(true)
@@ -69,7 +71,7 @@ const VerifyHealthId = () => {
     }
 
     async function searchByHealthId() {
-        const response = await searchHealthId(id);
+        const response = await searchHealthId(abhaNumber);
         if(response.data !== undefined){
             setIsVerifyThroughABHASerice(true);
             if(response.data.status === "ACTIVE") {
@@ -90,7 +92,7 @@ const VerifyHealthId = () => {
                     enableHealthIdVerify = resp;
                 }
             }
-            if(enableHealthIdVerify && IsValidPHRAddress(id) && response.details[0].code === "HIS-1008"){
+            if(enableHealthIdVerify && IsValidPHRAddress(abhaNumber) && response.details[0].code === "HIS-1008"){
                 setIsHealthNumberNotLinked(true)
             }
             else {
@@ -103,7 +105,7 @@ const VerifyHealthId = () => {
     async function verify() {
         setError('');
         setLoader(true);
-        const response = await getAuthModes(id);
+        const response = await getAuthModes(abhaNumber);
         if (response.error !== undefined) {
             setError(response.error.message);
         }
@@ -161,7 +163,7 @@ const VerifyHealthId = () => {
                     setMatchingPatientUuid(matchingPatientId.patientUuid);
                 } else {
                     setMatchingPatientFound(false);
-                    setId(ndhmDetails.id);
+                    setAbhaNumber(ndhmDetails.id);
                     setNdhmDetails(ndhmDetails);
                     setIsVerifyABHAThroughFetchModes(true);
                     await saveTokenOnQRScan(ndhmDetails);
@@ -181,7 +183,7 @@ const VerifyHealthId = () => {
     useEffect(() => {
         if(back){
             setNdhmDetails({});
-            setId('');
+            setAbhaNumber('');
             setShowError(false);
             setShowAuthModes(false);
             setAuthModes([]);
@@ -210,12 +212,12 @@ const VerifyHealthId = () => {
                 {!isMobileOtpVerified &&
                 <div>
                     <div className="verify-health-id">
-                        <label htmlFor="healthId" className="label">Enter ABHA Number/ABHA Address: </label>
+                        <label htmlFor="healthId" className="label">Enter ABHA Number</label>
                         <div className="verify-health-id-input-btn">
                             <div className="verify-health-id-input">
-                                <input type="text" id="healthId" name="healthId" value={id} onChange={idOnChangeHandler} />
+                                <input type="text" id="abhaNumber" name="abhaNumber" value={abhaNumber} onChange={abhaNumberOnChangeHandler} />
                             </div>
-                            <button name="verify-btn" type="button" onClick={verifyHealthId} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
+                            <button name="verify-btn" type="button" onClick={verifyAbhaNumber} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
                             {showError && <h6 className="error">{errorHealthId}</h6>}
                         </div>
                     </div>
@@ -256,12 +258,12 @@ const VerifyHealthId = () => {
                     {error !== '' && <h6 className="error">{error}</h6>}
                 </div> }
                 {loader && <Spinner />}
-                {showAuthModes && <AuthModes id={id} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked}/>}
+                {showAuthModes && <AuthModes id={abhaNumber} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked}/>}
             </div>}
-            {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={id} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
+            {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={abhaNumber} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
             {(isVerifyThroughABHASerice || isVerifyThroughMobileNumberEnabled) && checkIfNotNull(ndhmDetails) && ndhmDetails.id === undefined  && <CreateHealthId ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsHealthIdCreated={setIsHealthIdCreated} />}
             {!matchingPatientFound && !healthIdIsVoided && checkIfNotNull(ndhmDetails) && (ndhmDetails.id !== undefined || isHealthIdCreated || isVerifyABHAThroughFetchModes)
-             && <PatientDetails enableABHACardView={true} ndhmDetails={ndhmDetails} id={id} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated}/>}
+             && <PatientDetails enableABHACardView={true} ndhmDetails={ndhmDetails} id={abhaNumber} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated}/>}
         </div>
     );
 }

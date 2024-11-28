@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as Constants from './constants';
 import { parseAPIError } from './apiUtils';
+import {verificationRequestOtp, verificationVerifyOtp} from "./constants";
 export const getAuthModes = async (healthId) => {
     let error = isValidHealthId(healthId);
     if (error) {
@@ -402,13 +403,13 @@ export const searchHealthId = async (healthId) => {
     }
 }
 
-export const healthIdAuthInit = async (healthId, authMode) => {
+export const abhaNumberRequestOtp = async (abhaNumber, authMode) => {
     const data = {
-        "healthId": healthId,
+        "abhaNumber": abhaNumber,
         "authMethod": authMode,
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.healthIdAuthInit, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationRequestOtp, data, Constants.headers);
         return response;
     }
     catch (error) {
@@ -419,13 +420,12 @@ export const healthIdAuthInit = async (healthId, authMode) => {
     }
 };
 
-export const healthIdConfirmOtp = async (otp, authMode) => {
+export const abhaNumberVerifyOtp = async (otp) => {
     const data = {
         "otp": otp,
-        "authMethod": authMode,
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.healthIdConfirmOtp, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationVerifyOtp, data, Constants.headers);
         return response;
     }
     catch (error) {
@@ -467,7 +467,7 @@ export const mobileGenerateOtp = async (mobileNumber) => {
         "mobileNumber": mobileNumber
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.generateMobileOtp, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationRequestOtp, data, Constants.headers);
         return response;
     }
     catch (error) {
@@ -484,7 +484,7 @@ export const mobileVerifyOtp = async (otp) => {
         "otp": otp
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.verifyMobileOtp, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationVerifyOtp, data, Constants.headers);
         return response;
     }
     catch (error) {

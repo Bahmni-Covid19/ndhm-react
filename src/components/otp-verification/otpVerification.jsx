@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {authConfirm, healthIdConfirmOtp} from '../../api/hipServiceApi';
+import {authConfirm, abhaNumberVerifyOtp, getPatientProfile} from '../../api/hipServiceApi';
 import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
 import {getDate} from "../Common/DateUtil";
@@ -17,9 +17,16 @@ const OtpVerification = (props) => {
         setLoader(true);
         setShowError(false);
         if(!props.isHealthNumberNotLinked){
-            const response = await healthIdConfirmOtp(otp,props.selectedAuthMode);
+            const response = await abhaNumberVerifyOtp(otp);
             if(response.data !== undefined) {
-                setNdhmDetails(mapPatient(response.data));
+                const getProfileResponse= await getPatientProfile();
+                if(getProfileResponse.data != undefined) {
+                    setNdhmDetails(mapPatient(getProfileResponse.data));
+                }
+                else {
+                    console.log("error");
+                }
+
             }
             else {
                 setShowError(true);
