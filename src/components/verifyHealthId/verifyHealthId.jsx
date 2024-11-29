@@ -3,7 +3,7 @@ import {
     getAuthModes,
     fetchPatientFromBahmniWithHealthId,
     getHealthIdStatus,
-    saveTokenOnQRScan, searchHealthId, IsValidPHRAddress, fetchGlobalProperty
+    saveTokenOnQRScan, searchAbhaAddress, IsValidPHRAddress, fetchGlobalProperty
 } from '../../api/hipServiceApi';
 import AuthModes from '../auth-modes/authModes';
 import Spinner from '../spinner/spinner';
@@ -18,6 +18,7 @@ import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumb
 
 const VerifyHealthId = () => {
     const [abhaNumber, setAbhaNumber] = useState('');
+    const [abhaAddress, setAbhaAddress] = useState('');
     const [authModes, setAuthModes] = useState([]);
     const supportedHealthIdAuthModes = ["MOBILE_OTP", "AADHAAR_OTP"];
     const [showAuthModes, setShowAuthModes] = useState(false);
@@ -36,19 +37,25 @@ const VerifyHealthId = () => {
     const [isHealthNumberNotLinked, setIsHealthNumberNotLinked] = useState(false);
     const [error, setError] = useState('');
     const [isVerifyABHAThroughFetchModes, setIsVerifyABHAThroughFetchModes] = useState(false);
-    const [isVerifyThroughABHASerice, setIsVerifyThroughABHASerice] = useState(false);
+    const [isVerifyThroughABHASerice, setIsVerifyThroughABHAService] = useState(false);
     const [isVerifyThroughMobileNumberEnabled, setIsVerifyThroughMobileNumberEnabled] = useState(false);
     const [isDisabled, setIsDisabled] = useState(false);
     const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
+    const [isVerifyByAbhaAddress, setIsVerifyByAbhaAddress] = useState(false);
 
     function abhaNumberOnChangeHandler(e) {
         setAbhaNumber(e.target.value);
+    }
+
+    function abhaAddressOnChangeHandler(e) {
+        setAbhaAddress(e.target.value);
     }
 
     async function verifyAbhaNumber() {
         setError('');
         setLoader(true);
         setShowError(false);
+        setIsVerifyByAbhaAddress(false);
         const matchingPatientId = await fetchPatientFromBahmniWithHealthId(abhaNumber);
         const healthIdStatus = matchingPatientId.Error !== undefined ? await getHealthIdStatus(matchingPatientId.patientUuid) : false;
         if (matchingPatientId.Error === undefined) {
@@ -70,10 +77,11 @@ const VerifyHealthId = () => {
         setLoader(false);
     }
 
-    async function searchByHealthId() {
-        const response = await searchHealthId(abhaNumber);
+    async function searchByAbhaAddress() {
+        const response = await searchAbhaAddress(abhaAddress);
+        setIsVerifyByAbhaAddress(true);
         if(response.data !== undefined){
-            setIsVerifyThroughABHASerice(true);
+            setIsVerifyThroughABHAService(true);
             if(response.data.status === "ACTIVE") {
                 setShowAuthModes(true);
                 setAuthModes(response.data.authMethods !== undefined ?
@@ -224,6 +232,19 @@ const VerifyHealthId = () => {
                     <div className="alternative-text">
                         OR
                     </div>
+                    <div className="verify-health-id">
+                        <label htmlFor="healthId" className="label">Enter ABHA Address</label>
+                        <div className="verify-health-id-input-btn">
+                            <div className="verify-health-id-input">
+                                <input type="text" id="abhaAddress" name="abhaAddress" value={abhaAddress} onChange={abhaAddressOnChangeHandler} />
+                            </div>
+                            <button name="verify-btn" type="button" onClick={searchByAbhaAddress} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
+                            {showError && <h6 className="error">{errorHealthId}</h6>}
+                        </div>
+                    </div>
+                    <div className="alternative-text">
+                        OR
+                    </div>
                     <div className="qr-code-scanner">
                         <button name="scan-btn" type="button" onClick={()=> setScanningStatus(!scanningStatus)} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Scan Patient's QR code <span id="cam-icon"><FcWebcam /></span></button>
                         {scanningStatus && <QrReader
@@ -258,12 +279,12 @@ const VerifyHealthId = () => {
                     {error !== '' && <h6 className="error">{error}</h6>}
                 </div> }
                 {loader && <Spinner />}
-                {showAuthModes && <AuthModes id={abhaNumber} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked}/>}
+                {showAuthModes && <AuthModes id={isVerifyByAbhaAddress?abhaAddress:abhaNumber} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
             </div>}
             {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={abhaNumber} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
             {(isVerifyThroughABHASerice || isVerifyThroughMobileNumberEnabled) && checkIfNotNull(ndhmDetails) && ndhmDetails.id === undefined  && <CreateHealthId ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsHealthIdCreated={setIsHealthIdCreated} />}
             {!matchingPatientFound && !healthIdIsVoided && checkIfNotNull(ndhmDetails) && (ndhmDetails.id !== undefined || isHealthIdCreated || isVerifyABHAThroughFetchModes)
-             && <PatientDetails enableABHACardView={true} ndhmDetails={ndhmDetails} id={abhaNumber} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated}/>}
+             && <PatientDetails enableABHACardView={true} ndhmDetails={ndhmDetails} id={abhaNumber} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
         </div>
     );
 }

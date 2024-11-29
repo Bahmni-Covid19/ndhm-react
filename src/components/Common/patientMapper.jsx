@@ -14,9 +14,9 @@ export function mapPatient(patient){
     };
     return {
         healthIdNumber: patient?.abhaNumber,
-        id: patient?.preferredAbhaAddress,
+        id: patient?.preferredAbhaAddress || patient?.abhaAddress,
         gender: patient.gender,
-        name: patient.name,
+        name: patient.name || patient.fullName,
         isBirthDateEstimated: patient?.birthdate !== undefined ? false : (patient?.monthOfBirth == null || patient?.dayOfBirth == null),
         dateOfBirth: patient?.birthdate === undefined ? getDate(patient) : patient?.birthdate.split('-').reverse().join('-'),
         address: address,

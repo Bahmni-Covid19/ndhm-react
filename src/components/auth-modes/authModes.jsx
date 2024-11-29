@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {authInit, fetchGlobalProperty, abhaNumberRequestOtp} from '../../api/hipServiceApi';
+import {authInit, fetchGlobalProperty, abhaNumberRequestOtp, abhaAddressRequestOtp} from '../../api/hipServiceApi';
 import OtpVerification from '../otp-verification/otpVerification';
 import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
@@ -18,6 +18,7 @@ const AuthModes = (props) => {
 
     const id = props.id;
     const authModes = props.authModes;
+    const isVerifyByAbhaAddress = props.isVerifyByAbhaAddress;
     let authModesList = authModes !== undefined && authModes.length > 0 && authModes.map((item, i) => {
         return (
             <option key={i} value={item}>{item}</option>
@@ -32,7 +33,13 @@ const AuthModes = (props) => {
         setLoader(true);
         if(!props.isHealthNumberNotLinked){
             setShowError(false);
-            const response = await abhaNumberRequestOtp(id, selectedAuthMode);
+            let response;
+            if(isVerifyByAbhaAddress){
+                response = await abhaAddressRequestOtp(id, selectedAuthMode);
+            }
+            else{
+                response = await abhaNumberRequestOtp(id,selectedAuthMode);
+            }
             if (response.data !== undefined) {
                 setShowOtpField(true);
             }
@@ -93,7 +100,7 @@ const AuthModes = (props) => {
             </div>}
             {loader && <Spinner />}
             {isDirectAuth && <DirectAuth healthId={id} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails}/>}
-            {!isDirectAuth && showOtpField && <OtpVerification id={id} selectedAuthMode={selectedAuthMode} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} isHealthNumberNotLinked={props.isHealthNumberNotLinked}/>}
+            {!isDirectAuth && showOtpField && <OtpVerification id={id} selectedAuthMode={selectedAuthMode} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} isHealthNumberNotLinked={props.isHealthNumberNotLinked} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
         </div>
     );
 }

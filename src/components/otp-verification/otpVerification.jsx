@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import {authConfirm, abhaNumberVerifyOtp, getPatientProfile} from '../../api/hipServiceApi';
+import {
+    authConfirm,
+    abhaNumberVerifyOtp,
+    getPatientProfile,
+    abhaAddressVerifyOtp,
+    getAbhaAddressProfile
+} from '../../api/hipServiceApi';
 import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
 import {getDate} from "../Common/DateUtil";
@@ -17,21 +23,41 @@ const OtpVerification = (props) => {
         setLoader(true);
         setShowError(false);
         if(!props.isHealthNumberNotLinked){
-            const response = await abhaNumberVerifyOtp(otp);
-            if(response.data !== undefined) {
-                const getProfileResponse= await getPatientProfile();
-                if(getProfileResponse.data != undefined) {
-                    setNdhmDetails(mapPatient(getProfileResponse.data));
+            if(props.isVerifyByAbhaAddress){
+                const response = await abhaAddressVerifyOtp(otp);
+                if(response.data !== undefined) {
+                    const getProfileResponse= await getAbhaAddressProfile();
+                    if(getProfileResponse.data != undefined) {
+                        setNdhmDetails(mapPatient(getProfileResponse.data));
+                    }
+                    else {
+                        console.log("error");
+                    }
+
                 }
                 else {
-                    console.log("error");
+                    setShowError(true);
+                    setErrorHealthId(response.details[0].message || response.message);
                 }
+            }
+            else{
+                const response = await abhaNumberVerifyOtp(otp);
+                if(response.data !== undefined) {
+                    const getProfileResponse= await getPatientProfile();
+                    if(getProfileResponse.data != undefined) {
+                        setNdhmDetails(mapPatient(getProfileResponse.data));
+                    }
+                    else {
+                        console.log("error");
+                    }
 
+                }
+                else {
+                    setShowError(true);
+                    setErrorHealthId(response.details[0].message || response.message);
+                }
             }
-            else {
-                setShowError(true);
-                setErrorHealthId(response.details[0].message || response.message);
-            }
+
         }
         else {
             const response = await authConfirm(props.id, otp);

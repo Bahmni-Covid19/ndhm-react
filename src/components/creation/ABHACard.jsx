@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from "react";
 import './creation.scss';
 import Spinner from "../spinner/spinner";
-import {getCard} from "../../api/hipServiceApi";
+import {getAbhaAddresCard, getCard} from "../../api/hipServiceApi";
 import {GoVerified} from "react-icons/all";
 
 
@@ -18,7 +18,13 @@ const ABHACard = (props) => {
 
     async function getPngCard() {
         if(imgUrl == null) {
-            var response = await getCard();
+            var response;
+            if(props.isVerifyByAbhaAddress){
+                response = await getAbhaAddresCard();
+            }
+            else{
+                response = await getCard();
+            }
             if (response) {
                 setLoader(false);
                 if (response.data === undefined) {

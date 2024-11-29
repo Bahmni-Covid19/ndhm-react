@@ -387,12 +387,12 @@ export const createABHAAddress = async (abhaAddress) => {
     }
 }
 
-export const searchHealthId = async (healthId) => {
+export const searchAbhaAddress = async (abhaAddress) => {
     const data = {
-        "healthId": healthId
+        "abhaAddress": abhaAddress
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.searchHealthId,data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.searchAbhaAddress,data, Constants.headers);
         return response;
     }
     catch (error) {
@@ -402,6 +402,64 @@ export const searchHealthId = async (healthId) => {
             return Constants.serviceUnavailableError;
     }
 }
+export const abhaAddressRequestOtp = async (abhaAddress, authMode) => {
+    const data = {
+        "abhaAddress": abhaAddress,
+        "authMethod": authMode,
+    };
+    try {
+        const response = await axios.post(Constants.hipServiceUrl + Constants.abhaAddressVerificationRequestOtp, data, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        if (error.response !== undefined)
+            return error.response.data;
+        else
+            return Constants.serviceUnavailableError;
+    }
+};
+
+export const abhaAddressVerifyOtp = async (otp) => {
+    const data = {
+        "otp": otp,
+    };
+    try {
+        const response = await axios.post(Constants.hipServiceUrl + Constants.abhaAddressVerificationVerifyOtp, data, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        if (error.response !== undefined)
+            return error.response.data;
+        else
+            return Constants.serviceUnavailableError;
+    }
+};
+
+export const getAbhaAddressProfile = async () => {
+    try {
+        const response = await axios.get(Constants.hipServiceUrl + Constants.abhaAddressVerificationGetProfile, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        if (error.response !== undefined)
+            return error.response.data;
+        else
+            return Constants.serviceUnavailableError;
+    }
+};
+
+export const getAbhaAddresCard = async () => {
+    try {
+        const response = await axios.get(Constants.hipServiceUrl + Constants.abhaAddressVerificationGetCard,{
+            responseType: 'arraybuffer'
+        });
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
+    }
+}
+
 
 export const abhaNumberRequestOtp = async (abhaNumber, authMode) => {
     const data = {
