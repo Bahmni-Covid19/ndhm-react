@@ -14,7 +14,7 @@ import {mapPatient} from "../Common/patientMapper";
 const OtpVerification = (props) => {
     const [otp, setOtp] = useState('');
     const [ndhmDetails, setNdhmDetails] = [props.ndhmDetails,props.setNdhmDetails];
-    const [errorHealthId, setErrorHealthId] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [loader, setLoader] = useState(false);
 
@@ -31,13 +31,14 @@ const OtpVerification = (props) => {
                         setNdhmDetails(mapPatient(getProfileResponse.data));
                     }
                     else {
-                        console.log("error");
+                        setShowError(true);
+                        setErrorMessage(getProfileResponse.error.message);
                     }
 
                 }
                 else {
                     setShowError(true);
-                    setErrorHealthId(response.details[0].message || response.message);
+                    setErrorMessage(response.error.message);
                 }
             }
             else{
@@ -48,13 +49,14 @@ const OtpVerification = (props) => {
                         setNdhmDetails(mapPatient(getProfileResponse.data));
                     }
                     else {
-                        console.log("error");
+                        setShowError(true);
+                        setErrorMessage(getProfileResponse.error.message);
                     }
 
                 }
                 else {
                     setShowError(true);
-                    setErrorHealthId(response.details[0].message || response.message);
+                    setErrorMessage(response.error.message);
                 }
             }
 
@@ -63,7 +65,7 @@ const OtpVerification = (props) => {
             const response = await authConfirm(props.id, otp);
             if (response.error !== undefined || response.Error !== undefined) {
                 setShowError(true)
-                setErrorHealthId((response.Error && response.Error.Message) || response.error.message);
+                setErrorMessage((response.Error && response.Error.Message) || response.error.message);
             }
             else {
                 setNdhmDetails(parseNdhmDetails(response));
@@ -101,7 +103,7 @@ const OtpVerification = (props) => {
                         <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler} />
                     </div>
                     <button type="button" disabled={checkIfNotNull(ndhmDetails)} onClick={confirmAuth}>Fetch ABDM Data</button>
-                    {showError && <h6 className="error">{errorHealthId}</h6>}
+                    {showError && <h6 className="error">{errorMessage}</h6>}
                 </div>
             </div>}
             {loader && <Spinner />}

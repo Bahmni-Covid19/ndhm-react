@@ -1,7 +1,6 @@
 import axios from 'axios';
 import * as Constants from './constants';
 import { parseAPIError } from './apiUtils';
-import {verificationRequestOtp, verificationVerifyOtp} from "./constants";
 export const getAuthModes = async (healthId) => {
     let error = isValidHealthId(healthId);
     if (error) {
@@ -396,10 +395,7 @@ export const searchAbhaAddress = async (abhaAddress) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
 export const abhaAddressRequestOtp = async (abhaAddress, authMode) => {
@@ -412,10 +408,7 @@ export const abhaAddressRequestOtp = async (abhaAddress, authMode) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -428,10 +421,7 @@ export const abhaAddressVerifyOtp = async (otp) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -441,10 +431,7 @@ export const getAbhaAddressProfile = async () => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -471,10 +458,7 @@ export const abhaNumberRequestOtp = async (abhaNumber, authMode) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -487,10 +471,7 @@ export const abhaNumberVerifyOtp = async (otp) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -529,10 +510,7 @@ export const mobileGenerateOtp = async (mobileNumber) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -546,10 +524,7 @@ export const mobileVerifyOtp = async (otp) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -562,10 +537,7 @@ export const verifyAbhaAccount = async (abhaNumber) => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -575,10 +547,7 @@ export const getPatientProfile = async () => {
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 

@@ -25,7 +25,7 @@ const VerifyHealthId = () => {
     const [matchingPatientFound, setMatchingPatientFound] = useState(false);
     const [matchingpatientUuid, setMatchingPatientUuid] = useState('');
     const [healthIdIsVoided, setHealthIdIsVoided] = useState(false);
-    const [errorHealthId, setErrorHealthId] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [loader, setLoader] = useState(false);
     const [scanningStatus, setScanningStatus] = useState(false);
@@ -72,7 +72,7 @@ const VerifyHealthId = () => {
             }
         } else {
             setShowError(true)
-            setErrorHealthId(matchingPatientId.Error.message);
+            setErrorMessage(matchingPatientId.Error.message);
         }
         setLoader(false);
     }
@@ -90,7 +90,7 @@ const VerifyHealthId = () => {
             else
             {
                 setShowError(true)
-                setErrorHealthId("Health Id is not active");
+                setErrorMessage("Abha address is not active");
             }
         }
         else {
@@ -105,7 +105,7 @@ const VerifyHealthId = () => {
             }
             else {
                 setShowError(true)
-                setErrorHealthId(response.details[0].message || response.message);
+                setErrorMessage(response.error.message);
             }
         }
     }
@@ -178,7 +178,7 @@ const VerifyHealthId = () => {
                 }
             } else {
                 setShowError(true)
-                setErrorHealthId(matchingPatientId.Error.message);
+                setErrorMessage(matchingPatientId.Error.message);
             }
         }
     }
@@ -226,7 +226,7 @@ const VerifyHealthId = () => {
                                 <input type="text" id="abhaNumber" name="abhaNumber" value={abhaNumber} onChange={abhaNumberOnChangeHandler} />
                             </div>
                             <button name="verify-btn" type="button" onClick={verifyAbhaNumber} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
-                            {showError && <h6 className="error">{errorHealthId}</h6>}
+                            {showError && <h6 className="error">{errorMessage}</h6>}
                         </div>
                     </div>
                     <div className="alternative-text">
@@ -239,7 +239,7 @@ const VerifyHealthId = () => {
                                 <input type="text" id="abhaAddress" name="abhaAddress" value={abhaAddress} onChange={abhaAddressOnChangeHandler} />
                             </div>
                             <button name="verify-btn" type="button" onClick={searchByAbhaAddress} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
-                            {showError && <h6 className="error">{errorHealthId}</h6>}
+                            {showError && <h6 className="error">{errorMessage}</h6>}
                         </div>
                     </div>
                     <div className="alternative-text">

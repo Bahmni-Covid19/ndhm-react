@@ -9,7 +9,7 @@ import {enableDemographics} from "../../api/constants";
 const AuthModes = (props) => {
     const [selectedAuthMode, setSelectedAuthMode] = useState('');
     const [showOtpField, setShowOtpField] = useState(false);
-    const [errorHealthId, setErrorHealthId] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [loader, setLoader] = useState(false);
     const [ndhmDetails, setNdhmDetails] = [props.ndhmDetails,props.setNdhmDetails];
@@ -45,7 +45,7 @@ const AuthModes = (props) => {
             }
             else {
                 setShowError(true)
-                setErrorHealthId(response.details[0].message || response.message);
+                setErrorMessage(response.error.message);
             }
         }
         else {
@@ -59,7 +59,7 @@ const AuthModes = (props) => {
                 const response = await authInit(id, selectedAuthMode);
                 if (response.error !== undefined) {
                     setShowError(true)
-                    setErrorHealthId(response.error.message);
+                    setErrorMessage(response.error.message);
                 }
                 else {
                     setIsDirectAuth(selectedAuthMode === "DIRECT");
@@ -67,7 +67,7 @@ const AuthModes = (props) => {
                     setShowOtpField(true);
                 }
             } else {
-                setErrorHealthId("The selected Authentication Mode is currently not supported!");
+                setErrorMessage("The selected Authentication Mode is currently not supported!");
                 setShowError(true);
             }
         }
@@ -95,7 +95,7 @@ const AuthModes = (props) => {
                         </select>
                     </div>
                     <button type="button" disabled={showOtpField || isDirectAuth} onClick={authenticate}>Authenticate</button>
-                    {showError && <h6 className="error">{errorHealthId}</h6>}
+                    {showError && <h6 className="error">{errorMessage}</h6>}
                 </div>
             </div>}
             {loader && <Spinner />}
