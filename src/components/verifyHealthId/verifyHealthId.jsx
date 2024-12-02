@@ -43,6 +43,19 @@ const VerifyHealthId = () => {
     const [isDisabled, setIsDisabled] = useState(false);
     const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
     const [isVerifyByAbhaAddress, setIsVerifyByAbhaAddress] = useState(false);
+    const [selectedIdentifierType, setSelectedIdentifierType] = useState('');
+
+    function identifierTypeOnChangeHandler(e) {
+        setShowError(false);
+        setErrorMessage('');
+        setAuthModes([]);
+        setShowAuthModes(false);
+        setMatchingPatientFound(false);
+        setNdhmDetails({});
+        setAbhaNumber('');
+        setAbhaAddress('');
+        setSelectedIdentifierType(e.target.value);
+    }
 
     function abhaNumberOnChangeHandler(e) {
         setShowError(false);
@@ -86,7 +99,9 @@ const VerifyHealthId = () => {
     }
 
     async function searchByAbhaAddress() {
+        setLoader(true);
         const response = await searchAbhaAddress(abhaAddress);
+        setLoader(false);
         setIsVerifyByAbhaAddress(true);
         if(response.data !== undefined){
             setIsVerifyThroughABHAService(true);
@@ -108,7 +123,7 @@ const VerifyHealthId = () => {
                     enableHealthIdVerify = resp;
                 }
             }
-            if(enableHealthIdVerify && IsValidPHRAddress(abhaNumber) && response.details[0].code === "HIS-1008"){
+            if(enableHealthIdVerify && IsValidPHRAddress(abhaAddress) && response.details[0].code === "HIS-1008"){
                 setIsHealthNumberNotLinked(true)
             }
             else {
@@ -227,19 +242,42 @@ const VerifyHealthId = () => {
             <div>
                 {!isMobileOtpVerified &&
                 <div>
-                    <div className="verify-health-id">
+                    <div className="qr-code-scanner">
+                        <button name="scan-btn" type="button" onClick={()=> setScanningStatus(!scanningStatus)} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Scan Patient's QR code <span id="cam-icon"><FcWebcam /></span></button>
+                        {scanningStatus && <QrReader
+                            delay={10}
+                            onScan={handleScan}
+                            style={{ width: '60%', margin: '50px' }}
+                        />}
+                    </div>
+                    <div className="alternative-text">
+                        OR
+                    </div>
+                <div className="auth-modes">
+                <label htmlFor="verify-type">Select identifier type for Verification</label>
+                    <div className="auth-modes-select-btn">
+                        <div className="auth-modes-select">
+                            <select id="verify-type" onChange={identifierTypeOnChangeHandler}>
+                                <option value=''>Select Identifier Type</option>
+                                <option value="ABHA_NUMBER">ABHA Number</option>
+                                <option value="ABHA_ADDRESS">ABHA Address</option>
+                                {isVerifyThroughMobileNumberEnabled && <option value="MOBILE_NUMBER">Mobile Number</option> }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {selectedIdentifierType ==="ABHA_NUMBER" &&
+                <div className="verify-health-id">
                         <label htmlFor="healthId" className="label">Enter ABHA Number</label>
                         <div className="verify-health-id-input-btn">
                             <div className="verify-health-id-input">
                                 <input type="text" id="abhaNumber" name="abhaNumber" value={abhaNumber} onChange={abhaNumberOnChangeHandler} />
                             </div>
                             <button name="verify-btn" type="button" onClick={verifyAbhaNumber} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
-                            {showError && <h6 className="error">{errorMessage}</h6>}
                         </div>
-                    </div>
-                    <div className="alternative-text">
-                        OR
-                    </div>
+                </div>
+                }
+                {selectedIdentifierType ==="ABHA_ADDRESS" &&
                     <div className="verify-health-id">
                         <label htmlFor="healthId" className="label">Enter ABHA Address</label>
                         <div className="verify-health-id-input-btn">
@@ -249,23 +287,11 @@ const VerifyHealthId = () => {
                             <button name="verify-btn" type="button" onClick={searchByAbhaAddress} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
                         </div>
                     </div>
-                    <div className="alternative-text">
-                        OR
-                    </div>
-                    <div className="qr-code-scanner">
-                        <button name="scan-btn" type="button" onClick={()=> setScanningStatus(!scanningStatus)} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Scan Patient's QR code <span id="cam-icon"><FcWebcam /></span></button>
-                        {scanningStatus && <QrReader
-                            delay={10}
-                            onScan={handleScan}
-                            style={{ width: '60%', margin: '50px' }}
-                        />}
-                    </div>
+                }
+                {showError && <h6 className="error center">{errorMessage}</h6>}
                 </div>}
-                {isVerifyThroughMobileNumberEnabled &&
+                {selectedIdentifierType ==="MOBILE_NUMBER" &&
                 <div>
-                    {!isMobileOtpVerified && <div className="alternative-text">
-                        OR
-                    </div>}
                     <VerifyHealthIdThroughMobileNumber isDisabled={showAuthModes} setIsDisabled={setIsDisabled} setIsMobileOtpVerified={setIsMobileOtpVerified}
                                                        ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>
                 </div>}
