@@ -54,7 +54,7 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
         }
         else {
             setShowError(true);
-            setError(response.details[0].message || response.message);
+            setError(response.error.message);
         }
         setLoader(false);
     }
@@ -72,10 +72,7 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
                 setLoader(false);
                 if(response.data === undefined){
                     setShowError(true);
-                    if(response.details !== undefined && response.details.length > 0)
-                        setError(response.details[0].message);
-                    else
-                        setError("An error occurred while processing your request")
+                    setError(response.error.message);
                 }
                 else {
                     props.setIsMobileOtpVerified(true);
@@ -134,10 +131,7 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
             setLoader(false);
             if (response.data === undefined) {
                 setShowError(true);
-                if (response.details !== undefined && response.details.length > 0)
-                    setError(response.details[0].message)
-                else
-                    setError("An error occurred while processing your request")
+                setError(response.error.message);
             }
             else {
                 props.setNdhmDetails(mapPatient(response.data));
@@ -157,7 +151,7 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
                 await getABHAProfile();
             } else {
                 setShowError(true);
-                setError(response.details?.[0]?.message || response.message || "An unknown error occurred.");
+                setError(response.error.message);
             }
         } catch (error) {
             setShowError(true);
