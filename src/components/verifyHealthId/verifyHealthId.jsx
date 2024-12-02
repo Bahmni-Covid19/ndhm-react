@@ -1,9 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {
-    getAuthModes,
     fetchPatientFromBahmniWithHealthId,
     getHealthIdStatus,
-    saveTokenOnQRScan, searchAbhaAddress, IsValidPHRAddress, fetchGlobalProperty
+    saveTokenOnQRScan, searchAbhaAddress, fetchGlobalProperty
 } from '../../api/hipServiceApi';
 import AuthModes from '../auth-modes/authModes';
 import Spinner from '../spinner/spinner';
@@ -13,7 +12,7 @@ import { FcWebcam } from 'react-icons/fc';
 import './verifyHealthId.scss';
 import DemoAuth from "../demo-auth/demoAuth";
 import CreateHealthId from "../otp-verification/create-healthId";
-import {enableHealthIdVerification, enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
+import {enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
 import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumber";
 import { formatAbhaNumber, validateAbhaNumber } from "../Common/FormatAndValidationUtils";
 
@@ -34,9 +33,6 @@ const VerifyHealthId = () => {
     const [back, setBack] = useState(false);
     const [isDemoAuth, setIsDemoAuth] = useState(false);
     const [isHealthIdCreated, setIsHealthIdCreated] = useState(false);
-    let enableHealthIdVerify;
-    const [isHealthNumberNotLinked, setIsHealthNumberNotLinked] = useState(false);
-    const [error, setError] = useState('');
     const [isVerifyABHAThroughFetchModes, setIsVerifyABHAThroughFetchModes] = useState(false);
     const [isVerifyThroughABHASerice, setIsVerifyThroughABHAService] = useState(false);
     const [isVerifyThroughMobileNumberEnabled, setIsVerifyThroughMobileNumberEnabled] = useState(false);
@@ -73,7 +69,6 @@ const VerifyHealthId = () => {
             setErrorMessage("Invalid ABHA Number. ABHA Number should be 14 digits");
             return;
         }
-        setError('');
         setLoader(true);
         setShowError(false);
         setIsVerifyByAbhaAddress(false);
@@ -99,6 +94,13 @@ const VerifyHealthId = () => {
     }
 
     async function searchByAbhaAddress() {
+        setShowError(false);
+        setErrorMessage('');
+        if(abhaAddress === ''){
+            setShowError(true);
+            setErrorMessage("Please enter ABHA Address");
+            return;
+        }
         setLoader(true);
         const response = await searchAbhaAddress(abhaAddress);
         setLoader(false);
@@ -117,35 +119,9 @@ const VerifyHealthId = () => {
             }
         }
         else {
-            if(enableHealthIdVerify == null) {
-                var resp = await fetchGlobalProperty(enableHealthIdVerification)
-                if (resp.Error === undefined) {
-                    enableHealthIdVerify = resp;
-                }
-            }
-            if(enableHealthIdVerify && IsValidPHRAddress(abhaAddress) && response.details[0].code === "HIS-1008"){
-                setIsHealthNumberNotLinked(true)
-            }
-            else {
-                setShowError(true)
-                setErrorMessage(response.error.message);
-            }
+            setShowError(true)
+            setErrorMessage(response.error.message);
         }
-    }
-
-    async function verify() {
-        setError('');
-        setLoader(true);
-        const response = await getAuthModes(abhaNumber);
-        if (response.error !== undefined) {
-            setError(response.error.message);
-        }
-        else {
-            setShowAuthModes(true);
-            setAuthModes(response.authModes);
-            setIsVerifyABHAThroughFetchModes(true);
-        }
-        setLoader(false);
     }
 
     function getIfVaild(str){
@@ -162,9 +138,8 @@ const VerifyHealthId = () => {
             dateOfBirth: dob.join('-'),
             isBirthDateEstimated: dob.length !== 3,
             address: {
-                line: [getIfVaild(patient['address'])],
                 district: getIfVaild(patient['dist name'] || patient['district_name']),
-                state: getIfVaild(patient['state name']),
+                state: getIfVaild(patient['state name']) || patient['state_name'],
                 pincode: getIfVaild(patient['pincode'])
             },
             identifiers: [
@@ -223,7 +198,6 @@ const VerifyHealthId = () => {
             setLoader(false);
             setBack(false);
             setIsDemoAuth(false);
-            setError('');
             setIsMobileOtpVerified(false);
         }
 
@@ -301,18 +275,8 @@ const VerifyHealthId = () => {
                 {healthIdIsVoided && <div className="id-deactivated">
                     Health ID is deactivated
                 </div>}
-                {!showAuthModes && isHealthNumberNotLinked && <div>
-                    <div className="note health-id">
-                        Health Id doesn't have health Number linked.
-                        Click on proceed to authenticate with only healthId or you can create new ABHA Number
-                    </div>
-                    <div className="proceed-button">
-                        <button name="proceed-btn" type="button" onClick={verify}>Proceed</button>
-                    </div>
-                    {error !== '' && <h6 className="error">{error}</h6>}
-                </div> }
                 {loader && <Spinner />}
-                {showAuthModes && <AuthModes id={isVerifyByAbhaAddress?abhaAddress:formatAbhaNumber(abhaNumber)} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
+                {showAuthModes && <AuthModes id={isVerifyByAbhaAddress?abhaAddress:formatAbhaNumber(abhaNumber)} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
             </div>}
             {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={abhaNumber} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
             {(isVerifyThroughABHASerice || isVerifyThroughMobileNumberEnabled) && checkIfNotNull(ndhmDetails) && ndhmDetails.id === undefined  && <CreateHealthId ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsHealthIdCreated={setIsHealthIdCreated} />}

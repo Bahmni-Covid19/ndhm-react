@@ -6,8 +6,7 @@ export function mapPatient(patient){
         value: patient.mobile
     }] : undefined;
     var address =  {
-        line: [patient?.address],
-        city: patient?.townName,
+        city: patient?.townName || getCityFromAddressLine(patient?.address),
         district: patient?.districtName,
         state: patient?.stateName,
         pincode: patient?.pincode
