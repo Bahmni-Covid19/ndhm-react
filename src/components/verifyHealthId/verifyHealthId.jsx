@@ -15,6 +15,7 @@ import DemoAuth from "../demo-auth/demoAuth";
 import CreateHealthId from "../otp-verification/create-healthId";
 import {enableHealthIdVerification, enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
 import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumber";
+import { formatAbhaNumber, validateAbhaNumber } from "../Common/FormatAndValidationUtils";
 
 const VerifyHealthId = () => {
     const [abhaNumber, setAbhaNumber] = useState('');
@@ -44,6 +45,8 @@ const VerifyHealthId = () => {
     const [isVerifyByAbhaAddress, setIsVerifyByAbhaAddress] = useState(false);
 
     function abhaNumberOnChangeHandler(e) {
+        setShowError(false);
+        setErrorMessage('');
         setAbhaNumber(e.target.value);
     }
 
@@ -51,7 +54,12 @@ const VerifyHealthId = () => {
         setAbhaAddress(e.target.value);
     }
 
-    async function verifyAbhaNumber() {
+      async function verifyAbhaNumber() {
+        if(!validateAbhaNumber(abhaNumber)) {
+            setShowError(true)
+            setErrorMessage("Invalid ABHA Number. ABHA Number should be 14 digits");
+            return;
+        }
         setError('');
         setLoader(true);
         setShowError(false);
@@ -239,7 +247,6 @@ const VerifyHealthId = () => {
                                 <input type="text" id="abhaAddress" name="abhaAddress" value={abhaAddress} onChange={abhaAddressOnChangeHandler} />
                             </div>
                             <button name="verify-btn" type="button" onClick={searchByAbhaAddress} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
-                            {showError && <h6 className="error">{errorMessage}</h6>}
                         </div>
                     </div>
                     <div className="alternative-text">
@@ -279,7 +286,7 @@ const VerifyHealthId = () => {
                     {error !== '' && <h6 className="error">{error}</h6>}
                 </div> }
                 {loader && <Spinner />}
-                {showAuthModes && <AuthModes id={isVerifyByAbhaAddress?abhaAddress:abhaNumber} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
+                {showAuthModes && <AuthModes id={isVerifyByAbhaAddress?abhaAddress:formatAbhaNumber(abhaNumber)} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
             </div>}
             {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={abhaNumber} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
             {(isVerifyThroughABHASerice || isVerifyThroughMobileNumberEnabled) && checkIfNotNull(ndhmDetails) && ndhmDetails.id === undefined  && <CreateHealthId ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsHealthIdCreated={setIsHealthIdCreated} />}

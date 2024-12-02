@@ -90,11 +90,11 @@ const AuthModes = (props) => {
                 <div className="auth-modes-select-btn">
                     <div className="auth-modes-select">
                         <select id="auth-modes" onChange={onAuthModeSelected}>
-                            <option>Select auth mode..</option>
+                            <option value=''>Select auth mode..</option>
                             {authModesList}
                         </select>
                     </div>
-                    <button type="button" disabled={showOtpField || isDirectAuth} onClick={authenticate}>Authenticate</button>
+                    <button type="button" disabled={selectedAuthMode === '' || showOtpField || isDirectAuth} onClick={authenticate}>Authenticate</button>
                     {showError && <h6 className="error">{errorMessage}</h6>}
                 </div>
             </div>}

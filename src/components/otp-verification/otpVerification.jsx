@@ -10,6 +10,7 @@ import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
 import {getDate} from "../Common/DateUtil";
 import {mapPatient} from "../Common/patientMapper";
+import { validateOtp } from "../Common/FormatAndValidationUtils";
 
 const OtpVerification = (props) => {
     const [otp, setOtp] = useState('');
@@ -20,6 +21,12 @@ const OtpVerification = (props) => {
 
 
     async function confirmAuth() {
+        let formattedOtp = otp.trim();
+        if(!validateOtp(formattedOtp)){
+            setShowError(true);
+            setErrorMessage("Invalid OTP. OTP should be 6 digits");
+            return;
+        }
         setLoader(true);
         setShowError(false);
         if(!props.isHealthNumberNotLinked){
@@ -77,6 +84,8 @@ const OtpVerification = (props) => {
     }
 
     function otpOnChangeHandler(e) {
+        setShowError(false);
+        setErrorMessage('');
         setOtp(e.target.value);
     }
 

@@ -10,6 +10,7 @@ import Spinner from '../spinner/spinner';
 import './verifyHealthId.scss';
 import {checkIfNotNull} from "./verifyHealthId";
 import {mapPatient} from "../Common/patientMapper";
+import { validateMobileNumber, validateOtp } from "../Common/FormatAndValidationUtils";
 
 const VerifyHealthIdThroughMobileNumber = (props) => {
     const [mobileNumber, setMobileNumber] = useState('');
@@ -26,6 +27,8 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
     const [selectedABHA, setSelectedABHA] = useState({});
 
     function idOnChangeHandler(e) {
+        setShowError(false);
+        setError('');
         setMobileNumber(e.target.value);
         setShowOtpInput(false);
     }
@@ -35,6 +38,12 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
     }
 
     async function verifyMobileNumber() {
+        let formattedMobileNumber = mobileNumber.trim();
+        if(!validateMobileNumber(formattedMobileNumber)){
+            setShowError(true);
+            setError("Invalid Mobile Number. Mobile Number should be 10 digits");
+            return;
+        }
         setError('');
         setLoader(true);
         setShowError(false);
@@ -53,9 +62,9 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
     async function verifyOtp() {
         setError('');
         setShowError(false);
-        if (otp === '') {
+        if (!validateOtp(otp)) {
             setShowError(true);
-            setError("otp cannot be empty")
+            setError("Invalid OTP. OTP should be 6 digits");
         } else {
             setLoader(true);
             var response = await mobileVerifyOtp(otp);
