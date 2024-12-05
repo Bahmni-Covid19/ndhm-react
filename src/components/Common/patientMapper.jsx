@@ -6,17 +6,16 @@ export function mapPatient(patient){
         value: patient.mobile
     }] : undefined;
     var address =  {
-        line: [patient?.address],
-        city: patient?.townName,
+        city: patient?.townName || getCityFromAddressLine(patient?.address),
         district: patient?.districtName,
         state: patient?.stateName,
         pincode: patient?.pincode
     };
     return {
-        healthIdNumber: patient?.healthIdNumber,
-        id: patient?.healthId,
+        healthIdNumber: patient?.abhaNumber,
+        id: patient?.preferredAbhaAddress || patient?.abhaAddress,
         gender: patient.gender,
-        name: patient.name,
+        name: patient.name || patient.fullName,
         isBirthDateEstimated: patient?.birthdate !== undefined ? false : (patient?.monthOfBirth == null || patient?.dayOfBirth == null),
         dateOfBirth: patient?.birthdate === undefined ? getDate(patient) : patient?.birthdate.split('-').reverse().join('-'),
         address: address,

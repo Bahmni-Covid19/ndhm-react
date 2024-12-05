@@ -3,7 +3,10 @@ export const parseAPIError = (error) => {
     if (!error.response?.data) {
         return Constants.serviceUnavailableError;
     }
-    var errorResponseData = error.response.data
+    var errorResponseData = error.response.data;
+    if (errorResponseData instanceof Array){
+        errorResponseData = errorResponseData[0];
+    }
     if (errorResponseData.message)
         return { "error": { "message": errorResponseData.message } }
     if (errorResponseData.error?.message)

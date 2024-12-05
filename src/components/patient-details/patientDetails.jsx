@@ -120,7 +120,7 @@ const PatientDetails = (props) => {
                     <div className='center'><button onClick={()=> setShowABHACard(true)} disabled={showABHACard}>Get ABHA Card</button></div>}
                     {showABHACard &&
                     <div className="abha-card">
-                        <ABHACard  healthIdNumber={ndhmDetails?.healthIdNumber}/>
+                        <ABHACard  healthIdNumber={ndhmDetails?.healthIdNumber || ndhmDetails?.id} isVerifyByAbhaAddress={props.isVerifyByAbhaAddress}/>
                     </div>}
                     {patients.length === 0 && <b>No Bahmni Record Found</b>}
                     {patients.length > 0 && ndhmDetails.uuid == undefined &&

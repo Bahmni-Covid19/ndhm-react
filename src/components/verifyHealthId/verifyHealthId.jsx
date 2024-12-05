@@ -1,9 +1,8 @@
 import React, {useEffect, useState} from "react";
 import {
-    getAuthModes,
     fetchPatientFromBahmniWithHealthId,
     getHealthIdStatus,
-    saveTokenOnQRScan, searchHealthId, IsValidPHRAddress, fetchGlobalProperty
+    saveTokenOnQRScan, searchAbhaAddress, fetchGlobalProperty
 } from '../../api/hipServiceApi';
 import AuthModes from '../auth-modes/authModes';
 import Spinner from '../spinner/spinner';
@@ -13,18 +12,20 @@ import { FcWebcam } from 'react-icons/fc';
 import './verifyHealthId.scss';
 import DemoAuth from "../demo-auth/demoAuth";
 import CreateHealthId from "../otp-verification/create-healthId";
-import {enableHealthIdVerification, enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
+import {enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
 import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumber";
+import { formatAbhaNumber, validateAbhaNumber } from "../Common/FormatAndValidationUtils";
 
 const VerifyHealthId = () => {
-    const [id, setId] = useState('');
+    const [abhaNumber, setAbhaNumber] = useState('');
+    const [abhaAddress, setAbhaAddress] = useState('');
     const [authModes, setAuthModes] = useState([]);
     const supportedHealthIdAuthModes = ["MOBILE_OTP", "AADHAAR_OTP"];
     const [showAuthModes, setShowAuthModes] = useState(false);
     const [matchingPatientFound, setMatchingPatientFound] = useState(false);
     const [matchingpatientUuid, setMatchingPatientUuid] = useState('');
     const [healthIdIsVoided, setHealthIdIsVoided] = useState(false);
-    const [errorHealthId, setErrorHealthId] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [loader, setLoader] = useState(false);
     const [scanningStatus, setScanningStatus] = useState(false);
@@ -32,24 +33,46 @@ const VerifyHealthId = () => {
     const [back, setBack] = useState(false);
     const [isDemoAuth, setIsDemoAuth] = useState(false);
     const [isHealthIdCreated, setIsHealthIdCreated] = useState(false);
-    let enableHealthIdVerify;
-    const [isHealthNumberNotLinked, setIsHealthNumberNotLinked] = useState(false);
-    const [error, setError] = useState('');
     const [isVerifyABHAThroughFetchModes, setIsVerifyABHAThroughFetchModes] = useState(false);
-    const [isVerifyThroughABHASerice, setIsVerifyThroughABHASerice] = useState(false);
+    const [isVerifyThroughABHASerice, setIsVerifyThroughABHAService] = useState(false);
     const [isVerifyThroughMobileNumberEnabled, setIsVerifyThroughMobileNumberEnabled] = useState(false);
     const [isDisabled, setIsDisabled] = useState(false);
     const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
+    const [isVerifyByAbhaAddress, setIsVerifyByAbhaAddress] = useState(false);
+    const [selectedIdentifierType, setSelectedIdentifierType] = useState('');
 
-    function idOnChangeHandler(e) {
-        setId(e.target.value);
+    function identifierTypeOnChangeHandler(e) {
+        setShowError(false);
+        setErrorMessage('');
+        setAuthModes([]);
+        setShowAuthModes(false);
+        setMatchingPatientFound(false);
+        setNdhmDetails({});
+        setAbhaNumber('');
+        setAbhaAddress('');
+        setSelectedIdentifierType(e.target.value);
     }
 
-    async function verifyHealthId() {
-        setError('');
+    function abhaNumberOnChangeHandler(e) {
+        setShowError(false);
+        setErrorMessage('');
+        setAbhaNumber(e.target.value);
+    }
+
+    function abhaAddressOnChangeHandler(e) {
+        setAbhaAddress(e.target.value);
+    }
+
+      async function verifyAbhaNumber() {
+        if(!validateAbhaNumber(abhaNumber)) {
+            setShowError(true)
+            setErrorMessage("Invalid ABHA Number. ABHA Number should be 14 digits");
+            return;
+        }
         setLoader(true);
         setShowError(false);
-        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(id);
+        setIsVerifyByAbhaAddress(false);
+        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(abhaNumber);
         const healthIdStatus = matchingPatientId.Error !== undefined ? await getHealthIdStatus(matchingPatientId.patientUuid) : false;
         if (matchingPatientId.Error === undefined) {
             if(healthIdStatus === true)
@@ -59,19 +82,31 @@ const VerifyHealthId = () => {
                 setMatchingPatientUuid(matchingPatientId.patientUuid);
             } else {
                 setMatchingPatientFound(false);
-                await searchByHealthId();
+                setShowAuthModes(true);
+                setAuthModes(['AADHAAR_OTP','MOBILE_OTP']);
+
             }
         } else {
             setShowError(true)
-            setErrorHealthId(matchingPatientId.Error.message);
+            setErrorMessage(matchingPatientId.Error.message);
         }
         setLoader(false);
     }
 
-    async function searchByHealthId() {
-        const response = await searchHealthId(id);
+    async function searchByAbhaAddress() {
+        setShowError(false);
+        setErrorMessage('');
+        if(abhaAddress === ''){
+            setShowError(true);
+            setErrorMessage("Please enter ABHA Address");
+            return;
+        }
+        setLoader(true);
+        const response = await searchAbhaAddress(abhaAddress);
+        setLoader(false);
+        setIsVerifyByAbhaAddress(true);
         if(response.data !== undefined){
-            setIsVerifyThroughABHASerice(true);
+            setIsVerifyThroughABHAService(true);
             if(response.data.status === "ACTIVE") {
                 setShowAuthModes(true);
                 setAuthModes(response.data.authMethods !== undefined ?
@@ -80,39 +115,13 @@ const VerifyHealthId = () => {
             else
             {
                 setShowError(true)
-                setErrorHealthId("Health Id is not active");
+                setErrorMessage("Abha address is not active");
             }
         }
         else {
-            if(enableHealthIdVerify == null) {
-                var resp = await fetchGlobalProperty(enableHealthIdVerification)
-                if (resp.Error === undefined) {
-                    enableHealthIdVerify = resp;
-                }
-            }
-            if(enableHealthIdVerify && IsValidPHRAddress(id) && response.details[0].code === "HIS-1008"){
-                setIsHealthNumberNotLinked(true)
-            }
-            else {
-                setShowError(true)
-                setErrorHealthId(response.details[0].message || response.message);
-            }
+            setShowError(true)
+            setErrorMessage(response.error.message);
         }
-    }
-
-    async function verify() {
-        setError('');
-        setLoader(true);
-        const response = await getAuthModes(id);
-        if (response.error !== undefined) {
-            setError(response.error.message);
-        }
-        else {
-            setShowAuthModes(true);
-            setAuthModes(response.authModes);
-            setIsVerifyABHAThroughFetchModes(true);
-        }
-        setLoader(false);
     }
 
     function getIfVaild(str){
@@ -129,9 +138,8 @@ const VerifyHealthId = () => {
             dateOfBirth: dob.join('-'),
             isBirthDateEstimated: dob.length !== 3,
             address: {
-                line: [getIfVaild(patient['address'])],
                 district: getIfVaild(patient['dist name'] || patient['district_name']),
-                state: getIfVaild(patient['state name']),
+                state: getIfVaild(patient['state name']) || patient['state_name'],
                 pincode: getIfVaild(patient['pincode'])
             },
             identifiers: [
@@ -161,14 +169,14 @@ const VerifyHealthId = () => {
                     setMatchingPatientUuid(matchingPatientId.patientUuid);
                 } else {
                     setMatchingPatientFound(false);
-                    setId(ndhmDetails.id);
+                    setAbhaNumber(ndhmDetails.id);
                     setNdhmDetails(ndhmDetails);
                     setIsVerifyABHAThroughFetchModes(true);
                     await saveTokenOnQRScan(ndhmDetails);
                 }
             } else {
                 setShowError(true)
-                setErrorHealthId(matchingPatientId.Error.message);
+                setErrorMessage(matchingPatientId.Error.message);
             }
         }
     }
@@ -181,7 +189,7 @@ const VerifyHealthId = () => {
     useEffect(() => {
         if(back){
             setNdhmDetails({});
-            setId('');
+            setAbhaNumber('');
             setShowError(false);
             setShowAuthModes(false);
             setAuthModes([]);
@@ -190,7 +198,6 @@ const VerifyHealthId = () => {
             setLoader(false);
             setBack(false);
             setIsDemoAuth(false);
-            setError('');
             setIsMobileOtpVerified(false);
         }
 
@@ -209,19 +216,6 @@ const VerifyHealthId = () => {
             <div>
                 {!isMobileOtpVerified &&
                 <div>
-                    <div className="verify-health-id">
-                        <label htmlFor="healthId" className="label">Enter ABHA Number/ABHA Address: </label>
-                        <div className="verify-health-id-input-btn">
-                            <div className="verify-health-id-input">
-                                <input type="text" id="healthId" name="healthId" value={id} onChange={idOnChangeHandler} />
-                            </div>
-                            <button name="verify-btn" type="button" onClick={verifyHealthId} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
-                            {showError && <h6 className="error">{errorHealthId}</h6>}
-                        </div>
-                    </div>
-                    <div className="alternative-text">
-                        OR
-                    </div>
                     <div className="qr-code-scanner">
                         <button name="scan-btn" type="button" onClick={()=> setScanningStatus(!scanningStatus)} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Scan Patient's QR code <span id="cam-icon"><FcWebcam /></span></button>
                         {scanningStatus && <QrReader
@@ -230,12 +224,48 @@ const VerifyHealthId = () => {
                             style={{ width: '60%', margin: '50px' }}
                         />}
                     </div>
-                </div>}
-                {isVerifyThroughMobileNumberEnabled &&
-                <div>
-                    {!isMobileOtpVerified && <div className="alternative-text">
+                    <div className="alternative-text">
                         OR
-                    </div>}
+                    </div>
+                <div className="auth-modes">
+                <label htmlFor="verify-type">Select identifier type for Verification</label>
+                    <div className="auth-modes-select-btn">
+                        <div className="auth-modes-select">
+                            <select id="verify-type" onChange={identifierTypeOnChangeHandler}>
+                                <option value=''>Select Identifier Type</option>
+                                <option value="ABHA_NUMBER">ABHA Number</option>
+                                <option value="ABHA_ADDRESS">ABHA Address</option>
+                                {isVerifyThroughMobileNumberEnabled && <option value="MOBILE_NUMBER">Mobile Number</option> }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                {selectedIdentifierType ==="ABHA_NUMBER" &&
+                <div className="verify-health-id">
+                        <label htmlFor="healthId" className="label">Enter ABHA Number</label>
+                        <div className="verify-health-id-input-btn">
+                            <div className="verify-health-id-input">
+                                <input type="text" id="abhaNumber" name="abhaNumber" value={abhaNumber} onChange={abhaNumberOnChangeHandler} />
+                            </div>
+                            <button name="verify-btn" type="button" onClick={verifyAbhaNumber} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
+                        </div>
+                </div>
+                }
+                {selectedIdentifierType ==="ABHA_ADDRESS" &&
+                    <div className="verify-health-id">
+                        <label htmlFor="healthId" className="label">Enter ABHA Address</label>
+                        <div className="verify-health-id-input-btn">
+                            <div className="verify-health-id-input">
+                                <input type="text" id="abhaAddress" name="abhaAddress" value={abhaAddress} onChange={abhaAddressOnChangeHandler} />
+                            </div>
+                            <button name="verify-btn" type="button" onClick={searchByAbhaAddress} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
+                        </div>
+                    </div>
+                }
+                {showError && <h6 className="error center">{errorMessage}</h6>}
+                </div>}
+                {selectedIdentifierType ==="MOBILE_NUMBER" &&
+                <div>
                     <VerifyHealthIdThroughMobileNumber isDisabled={showAuthModes} setIsDisabled={setIsDisabled} setIsMobileOtpVerified={setIsMobileOtpVerified}
                                                        ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>
                 </div>}
@@ -245,23 +275,13 @@ const VerifyHealthId = () => {
                 {healthIdIsVoided && <div className="id-deactivated">
                     Health ID is deactivated
                 </div>}
-                {!showAuthModes && isHealthNumberNotLinked && <div>
-                    <div className="note health-id">
-                        Health Id doesn't have health Number linked.
-                        Click on proceed to authenticate with only healthId or you can create new ABHA Number
-                    </div>
-                    <div className="proceed-button">
-                        <button name="proceed-btn" type="button" onClick={verify}>Proceed</button>
-                    </div>
-                    {error !== '' && <h6 className="error">{error}</h6>}
-                </div> }
                 {loader && <Spinner />}
-                {showAuthModes && <AuthModes id={id} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isHealthNumberNotLinked={isHealthNumberNotLinked}/>}
+                {showAuthModes && <AuthModes id={isVerifyByAbhaAddress?abhaAddress:formatAbhaNumber(abhaNumber)} authModes={authModes} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsDemoAuth={setIsDemoAuth} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
             </div>}
-            {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={id} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
+            {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={abhaNumber} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
             {(isVerifyThroughABHASerice || isVerifyThroughMobileNumberEnabled) && checkIfNotNull(ndhmDetails) && ndhmDetails.id === undefined  && <CreateHealthId ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsHealthIdCreated={setIsHealthIdCreated} />}
             {!matchingPatientFound && !healthIdIsVoided && checkIfNotNull(ndhmDetails) && (ndhmDetails.id !== undefined || isHealthIdCreated || isVerifyABHAThroughFetchModes)
-             && <PatientDetails ndhmDetails={ndhmDetails} id={id} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated}/>}
+             && <PatientDetails enableABHACardView={true} ndhmDetails={ndhmDetails} id={abhaNumber} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
         </div>
     );
 }

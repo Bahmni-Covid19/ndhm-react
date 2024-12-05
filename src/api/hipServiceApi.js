@@ -386,53 +386,92 @@ export const createABHAAddress = async (abhaAddress) => {
     }
 }
 
-export const searchHealthId = async (healthId) => {
+export const searchAbhaAddress = async (abhaAddress) => {
     const data = {
-        "healthId": healthId
+        "abhaAddress": abhaAddress
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.searchHealthId,data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.searchAbhaAddress,data, Constants.headers);
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 }
-
-export const healthIdAuthInit = async (healthId, authMode) => {
+export const abhaAddressRequestOtp = async (abhaAddress, authMode) => {
     const data = {
-        "healthId": healthId,
+        "abhaAddress": abhaAddress,
         "authMethod": authMode,
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.healthIdAuthInit, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.abhaAddressVerificationRequestOtp, data, Constants.headers);
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
-export const healthIdConfirmOtp = async (otp, authMode) => {
+export const abhaAddressVerifyOtp = async (otp) => {
     const data = {
         "otp": otp,
-        "authMethod": authMode,
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.healthIdConfirmOtp, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.abhaAddressVerificationVerifyOtp, data, Constants.headers);
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
+    }
+};
+
+export const getAbhaAddressProfile = async () => {
+    try {
+        const response = await axios.get(Constants.hipServiceUrl + Constants.abhaAddressVerificationGetProfile, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
+    }
+};
+
+export const getAbhaAddresCard = async () => {
+    try {
+        const response = await axios.get(Constants.hipServiceUrl + Constants.abhaAddressVerificationGetCard,{
+            responseType: 'arraybuffer'
+        });
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
+    }
+}
+
+
+export const abhaNumberRequestOtp = async (abhaNumber, authMode) => {
+    const data = {
+        "abhaNumber": abhaNumber,
+        "authMethod": authMode,
+    };
+    try {
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationRequestOtp, data, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
+    }
+};
+
+export const abhaNumberVerifyOtp = async (otp) => {
+    const data = {
+        "otp": otp,
+    };
+    try {
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationVerifyOtp, data, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
     }
 };
 
@@ -464,17 +503,14 @@ export const updateHealthId = async (healthId) => {
 
 export const mobileGenerateOtp = async (mobileNumber) => {
     const data = {
-        "mobile": mobileNumber
+        "mobileNumber": mobileNumber
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.generateMobileOtp, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationRequestOtp, data, Constants.headers);
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
@@ -484,30 +520,34 @@ export const mobileVerifyOtp = async (otp) => {
         "otp": otp
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.verifyMobileOtp, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationVerifyOtp, data, Constants.headers);
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
     }
 };
 
-export const getPatientProfile = async (healthId) => {
+export const verifyAbhaAccount = async (abhaNumber) => {
     const data = {
-        "healthId": healthId
+        "abhaNumber": abhaNumber
     };
     try {
-        const response = await axios.post(Constants.hipServiceUrl + Constants.getPatientProfileInfo, data, Constants.headers);
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verifyAbhaAccount, data, Constants.headers);
         return response;
     }
     catch (error) {
-        if (error.response !== undefined)
-            return error.response.data;
-        else
-            return Constants.serviceUnavailableError;
+        return parseAPIError(error);
+    }
+};
+
+export const getPatientProfile = async () => {
+    try {
+        const response = await axios.get(Constants.hipServiceUrl + Constants.getPatientProfileInfo, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
     }
 };
 

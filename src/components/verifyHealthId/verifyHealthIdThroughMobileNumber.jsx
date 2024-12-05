@@ -3,12 +3,14 @@ import {
     fetchPatientFromBahmniWithHealthId,
     getPatientProfile,
     mobileGenerateOtp,
-    mobileVerifyOtp
+    mobileVerifyOtp,
+    verifyAbhaAccount
 } from '../../api/hipServiceApi';
 import Spinner from '../spinner/spinner';
 import './verifyHealthId.scss';
 import {checkIfNotNull} from "./verifyHealthId";
 import {mapPatient} from "../Common/patientMapper";
+import { validateMobileNumber, validateOtp } from "../Common/FormatAndValidationUtils";
 
 const VerifyHealthIdThroughMobileNumber = (props) => {
     const [mobileNumber, setMobileNumber] = useState('');
@@ -25,6 +27,8 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
     const [selectedABHA, setSelectedABHA] = useState({});
 
     function idOnChangeHandler(e) {
+        setShowError(false);
+        setError('');
         setMobileNumber(e.target.value);
         setShowOtpInput(false);
     }
@@ -34,6 +38,12 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
     }
 
     async function verifyMobileNumber() {
+        let formattedMobileNumber = mobileNumber.trim();
+        if(!validateMobileNumber(formattedMobileNumber)){
+            setShowError(true);
+            setError("Invalid Mobile Number. Mobile Number should be 10 digits");
+            return;
+        }
         setError('');
         setLoader(true);
         setShowError(false);
@@ -44,7 +54,7 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
         }
         else {
             setShowError(true);
-            setError(response.details[0].message || response.message);
+            setError(response.error.message);
         }
         setLoader(false);
     }
@@ -52,9 +62,9 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
     async function verifyOtp() {
         setError('');
         setShowError(false);
-        if (otp === '') {
+        if (!validateOtp(otp)) {
             setShowError(true);
-            setError("otp cannot be empty")
+            setError("Invalid OTP. OTP should be 6 digits");
         } else {
             setLoader(true);
             var response = await mobileVerifyOtp(otp);
@@ -62,14 +72,11 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
                 setLoader(false);
                 if(response.data === undefined){
                     setShowError(true);
-                    if(response.details !== undefined && response.details.length > 0)
-                        setError(response.details[0].message);
-                    else
-                        setError("An error occurred while processing your request")
+                    setError(response.error.message);
                 }
                 else {
                     props.setIsMobileOtpVerified(true);
-                    setLinkedABHANumber(response.data);
+                    setLinkedABHANumber(response.data.accounts);
                 }
             }
         }
@@ -85,8 +92,8 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
                 <button onClick={() => setSelectedABHA(linkedABHANumber[i])} className={selectedABHA === patient ? "active" : "abha-list"}>
                     <p>
                         <strong>{patient?.name?.replace(null,"")} </strong>
-                        {patient?.healthId !== "" && <span><br/>ABHA Address: {patient?.healthId}</span>}
-                         <span><br/>ABHA Number: {patient.healthIdNumber}</span>
+                        {patient?.preferredAbhaAddress !== "" && <span><br/>ABHA Address: {patient?.preferredAbhaAddress}</span>}
+                         <span><br/>ABHA Number: {patient.abhaNumber}</span>
                     </p>
                 </button>
             );
@@ -97,11 +104,11 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
         setIsHealthIdNotLinked(false);
         setMatchingPatientFound(false);
         if (checkIfNotNull(selectedABHA)) {
-            if (selectedABHA.healthId === "") {
+            if (selectedABHA.abhaNumber === "") {
                 setIsHealthIdNotLinked(true);
             }
-            if(selectedABHA.healthId !== "") {
-                const matchingPatientId = await fetchPatientFromBahmniWithHealthId(selectedABHA.healthId);
+            if(selectedABHA.abhaNumber !== "") {
+                const matchingPatientId = await fetchPatientFromBahmniWithHealthId(selectedABHA.abhaNumber);
                 if (matchingPatientId.Error === undefined && matchingPatientId.validPatient === true) {
                     setMatchingPatientFound(true);
                     setMatchingPatientUuid(matchingPatientId.patientUuid);
@@ -119,19 +126,38 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
         setError('');
         setShowError(false);
         setLoader(true);
-        const response = await getPatientProfile(selectedABHA.healthIdNumber);
+        const response = await getPatientProfile();
         if (response) {
             setLoader(false);
             if (response.data === undefined) {
                 setShowError(true);
-                if (response.details !== undefined && response.details.length > 0)
-                    setError(response.details[0].message)
-                else
-                    setError("An error occurred while processing your request")
+                setError(response.error.message);
             }
             else {
                 props.setNdhmDetails(mapPatient(response.data));
             }
+        }
+    }
+
+    async function verifyingAbhaAccount() {
+        setError('');
+        setLoader(true);
+        setShowError(false);
+
+        try {
+            const response = await verifyAbhaAccount(selectedABHA.abhaNumber);
+            console.log(response.data);
+            if (response.data !== undefined) {
+                await getABHAProfile();
+            } else {
+                setShowError(true);
+                setError(response.error.message);
+            }
+        } catch (error) {
+            setShowError(true);
+            setError(error.message || "An error occurred while verifying the account.");
+        } finally {
+            setLoader(false);
         }
     }
 
@@ -190,8 +216,8 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
                         Click on proceed to create new ABHA Address.
                     </div>}
                     <div className="create-confirm-btns">
-                        {props.setBack !== undefined && <button onClick={() => setBack(true)}>back</button>}
-                        {checkIfNotNull(selectedABHA) && !matchingPatientFound && <button onClick={getABHAProfile}> {isHealthIdNotLinked ? "Proceed" : "Confirm"} </button>}
+                        {props.setBack !== undefined && <button onClick={() => setBack(true)}>Back</button>}
+                        {checkIfNotNull(selectedABHA) && !matchingPatientFound && <button onClick={verifyingAbhaAccount}> {isHealthIdNotLinked ? "Proceed" : "Confirm"} </button>}
                     </div>
                     {showError && <h6 className="error-msg">{error}</h6>}
                     {loader && <Spinner />}

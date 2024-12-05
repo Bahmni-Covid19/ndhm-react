@@ -1,36 +1,78 @@
 import React, { useState } from "react";
-import {authConfirm, healthIdConfirmOtp} from '../../api/hipServiceApi';
+import {
+    authConfirm,
+    abhaNumberVerifyOtp,
+    getPatientProfile,
+    abhaAddressVerifyOtp,
+    getAbhaAddressProfile
+} from '../../api/hipServiceApi';
 import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
 import {getDate} from "../Common/DateUtil";
 import {mapPatient} from "../Common/patientMapper";
+import { validateOtp } from "../Common/FormatAndValidationUtils";
 
 const OtpVerification = (props) => {
     const [otp, setOtp] = useState('');
     const [ndhmDetails, setNdhmDetails] = [props.ndhmDetails,props.setNdhmDetails];
-    const [errorHealthId, setErrorHealthId] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [loader, setLoader] = useState(false);
 
 
     async function confirmAuth() {
+        let formattedOtp = otp.trim();
+        if(!validateOtp(formattedOtp)){
+            setShowError(true);
+            setErrorMessage("Invalid OTP. OTP should be 6 digits");
+            return;
+        }
         setLoader(true);
         setShowError(false);
         if(!props.isHealthNumberNotLinked){
-            const response = await healthIdConfirmOtp(otp,props.selectedAuthMode);
-            if(response.data !== undefined) {
-                setNdhmDetails(mapPatient(response.data));
+            if(props.isVerifyByAbhaAddress){
+                const response = await abhaAddressVerifyOtp(otp);
+                if(response.data !== undefined) {
+                    const getProfileResponse= await getAbhaAddressProfile();
+                    if(getProfileResponse.data != undefined) {
+                        setNdhmDetails(mapPatient(getProfileResponse.data));
+                    }
+                    else {
+                        setShowError(true);
+                        setErrorMessage(getProfileResponse.error.message);
+                    }
+
+                }
+                else {
+                    setShowError(true);
+                    setErrorMessage(response.error.message);
+                }
             }
-            else {
-                setShowError(true);
-                setErrorHealthId(response.details[0].message || response.message);
+            else{
+                const response = await abhaNumberVerifyOtp(otp);
+                if(response.data !== undefined) {
+                    const getProfileResponse= await getPatientProfile();
+                    if(getProfileResponse.data != undefined) {
+                        setNdhmDetails(mapPatient(getProfileResponse.data));
+                    }
+                    else {
+                        setShowError(true);
+                        setErrorMessage(getProfileResponse.error.message);
+                    }
+
+                }
+                else {
+                    setShowError(true);
+                    setErrorMessage(response.error.message);
+                }
             }
+
         }
         else {
             const response = await authConfirm(props.id, otp);
             if (response.error !== undefined || response.Error !== undefined) {
                 setShowError(true)
-                setErrorHealthId((response.Error && response.Error.Message) || response.error.message);
+                setErrorMessage((response.Error && response.Error.Message) || response.error.message);
             }
             else {
                 setNdhmDetails(parseNdhmDetails(response));
@@ -42,6 +84,8 @@ const OtpVerification = (props) => {
     }
 
     function otpOnChangeHandler(e) {
+        setShowError(false);
+        setErrorMessage('');
         setOtp(e.target.value);
     }
 
@@ -68,7 +112,7 @@ const OtpVerification = (props) => {
                         <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler} />
                     </div>
                     <button type="button" disabled={checkIfNotNull(ndhmDetails)} onClick={confirmAuth}>Fetch ABDM Data</button>
-                    {showError && <h6 className="error">{errorHealthId}</h6>}
+                    {showError && <h6 className="error">{errorMessage}</h6>}
                 </div>
             </div>}
             {loader && <Spinner />}

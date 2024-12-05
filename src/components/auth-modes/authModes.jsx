@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import {authInit, fetchGlobalProperty, healthIdAuthInit} from '../../api/hipServiceApi';
+import {authInit, fetchGlobalProperty, abhaNumberRequestOtp, abhaAddressRequestOtp} from '../../api/hipServiceApi';
 import OtpVerification from '../otp-verification/otpVerification';
 import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
@@ -9,7 +9,7 @@ import {enableDemographics} from "../../api/constants";
 const AuthModes = (props) => {
     const [selectedAuthMode, setSelectedAuthMode] = useState('');
     const [showOtpField, setShowOtpField] = useState(false);
-    const [errorHealthId, setErrorHealthId] = useState('');
+    const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [loader, setLoader] = useState(false);
     const [ndhmDetails, setNdhmDetails] = [props.ndhmDetails,props.setNdhmDetails];
@@ -18,6 +18,7 @@ const AuthModes = (props) => {
 
     const id = props.id;
     const authModes = props.authModes;
+    const isVerifyByAbhaAddress = props.isVerifyByAbhaAddress;
     let authModesList = authModes !== undefined && authModes.length > 0 && authModes.map((item, i) => {
         return (
             <option key={i} value={item}>{item}</option>
@@ -32,13 +33,19 @@ const AuthModes = (props) => {
         setLoader(true);
         if(!props.isHealthNumberNotLinked){
             setShowError(false);
-            const response = await healthIdAuthInit(id, selectedAuthMode);
+            let response;
+            if(isVerifyByAbhaAddress){
+                response = await abhaAddressRequestOtp(id, selectedAuthMode);
+            }
+            else{
+                response = await abhaNumberRequestOtp(id,selectedAuthMode);
+            }
             if (response.data !== undefined) {
                 setShowOtpField(true);
             }
             else {
                 setShowError(true)
-                setErrorHealthId(response.details[0].message || response.message);
+                setErrorMessage(response.error.message);
             }
         }
         else {
@@ -52,7 +59,7 @@ const AuthModes = (props) => {
                 const response = await authInit(id, selectedAuthMode);
                 if (response.error !== undefined) {
                     setShowError(true)
-                    setErrorHealthId(response.error.message);
+                    setErrorMessage(response.error.message);
                 }
                 else {
                     setIsDirectAuth(selectedAuthMode === "DIRECT");
@@ -60,7 +67,7 @@ const AuthModes = (props) => {
                     setShowOtpField(true);
                 }
             } else {
-                setErrorHealthId("The selected Authentication Mode is currently not supported!");
+                setErrorMessage("The selected Authentication Mode is currently not supported!");
                 setShowError(true);
             }
         }
@@ -83,17 +90,17 @@ const AuthModes = (props) => {
                 <div className="auth-modes-select-btn">
                     <div className="auth-modes-select">
                         <select id="auth-modes" onChange={onAuthModeSelected}>
-                            <option>Select auth mode..</option>
+                            <option value=''>Select auth mode..</option>
                             {authModesList}
                         </select>
                     </div>
-                    <button type="button" disabled={showOtpField || isDirectAuth} onClick={authenticate}>Authenticate</button>
-                    {showError && <h6 className="error">{errorHealthId}</h6>}
+                    <button type="button" disabled={selectedAuthMode === '' || showOtpField || isDirectAuth} onClick={authenticate}>Authenticate</button>
+                    {showError && <h6 className="error">{errorMessage}</h6>}
                 </div>
             </div>}
             {loader && <Spinner />}
             {isDirectAuth && <DirectAuth healthId={id} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails}/>}
-            {!isDirectAuth && showOtpField && <OtpVerification id={id} selectedAuthMode={selectedAuthMode} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} isHealthNumberNotLinked={props.isHealthNumberNotLinked}/>}
+            {!isDirectAuth && showOtpField && <OtpVerification id={id} selectedAuthMode={selectedAuthMode} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} isHealthNumberNotLinked={props.isHealthNumberNotLinked} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
         </div>
     );
 }
