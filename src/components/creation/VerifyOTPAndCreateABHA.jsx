@@ -146,7 +146,7 @@ const VerifyOTPAndCreateABHA = (props) => {
 					<div className="center">
 						<ResendOtp onResend={handleOtpResend} />
 					</div>
-					{showResendSuccessMessage && <div className="success_text">OTP Sent Successfully</div>}
+					{showResendSuccessMessage && <div className="success_text center">OTP Sent Successfully</div>}
 					<div className="input-and-label">
 						<label htmlFor="mobile" className="label">
 							Mobile Number used for ABHA Communications
