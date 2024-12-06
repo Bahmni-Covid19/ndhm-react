@@ -1,18 +1,11 @@
 import React, {useEffect, useState} from "react";
+import "./common.scss"
 
 const ResendOtp = ({onResend}) => {
-    const TIME_INTERVAL = 60;
+    const TIME_INTERVAL = 4;
     const [resendOtpDisabled, setResendOtpDisabled] = useState(true);
     const [timeLeft, setTimeLeft] = useState(TIME_INTERVAL);
     const [attemptsLeft, setAttemptsLeft] = useState(2);
-
-    const styles = {
-        info_text: {
-            color: "#808080",
-            fontSize: "14px",
-            paddingBottom: "20px",
-        }
-    }
 
     useEffect(() => {
         if (timeLeft > 0) {
@@ -39,9 +32,9 @@ const ResendOtp = ({onResend}) => {
     return (
 			<div>
 				{attemptsLeft <= 0 ? (
-					<div style={styles.info_text}>Maximum resend attempts reached</div>
+					<div className="info_text">Maximum resend attempts reached</div>
 				) : timeLeft > 0 ? (
-					<div style={styles.info_text}>Resend OTP in {timeLeft} seconds</div>
+					<div className="info_text">Resend OTP in {timeLeft} seconds</div>
 				) : (
 					<button
 						type="button"
