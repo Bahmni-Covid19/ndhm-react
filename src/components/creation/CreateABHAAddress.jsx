@@ -17,30 +17,53 @@ const CreateABHAAddress = (props) => {
 		props.setNewAbhaAddress,
 	];
 	const cmSuffix = localStorage.getItem(cmSuffixProperty);
-    const [lodingAbhaAddressSuggestions, setLodingAbhaAddressSuggestions] = useState(false);
+    const [loadingAbhaAddressSuggestions, setLoadingAbhaAddressSuggestions] = useState(false);
 	const [abhaAddressSuggestions, setAbhaAddressSuggestions] = useState([]);
 
 	useEffect(async () => {
-		setLodingAbhaAddressSuggestions(true);
+        setLoadingAbhaAddressSuggestions(true);
 		let response = await getAbhaAddressSuggestions();
 		if (response.data !== undefined) {
-			setLodingAbhaAddressSuggestions(false);
+            setLoadingAbhaAddressSuggestions(false);
 			const fetchedOptions = response.data.abhaAddressList.map((item) => ({
 				label: item,
 				value: item,
 			}));
 			setAbhaAddressSuggestions(fetchedOptions);
 		} else {
-			setLodingAbhaAddressSuggestions(false);
+            setLoadingAbhaAddressSuggestions(false);
 			console.error("An error occurred while getting suggestions");
 		}
 	}, []);
 
+    const validateAbhaAddress = (newAbhaAddress) => {
+        const MIN_LENGTH = 8;
+        const MAX_LENGTH = 18;
+
+        if (newAbhaAddress.length < MIN_LENGTH || newAbhaAddress.length > MAX_LENGTH) {
+          return `ABHA Address must be between ${MIN_LENGTH} and ${MAX_LENGTH} characters.`;
+        }
+
+        const abhaRegex = /^(?![._])(?!.*\..*\..*)(?!.*_.*_.*)[a-zA-Z0-9._]*(?<![._])$/;
+
+        if (!abhaRegex.test(newAbhaAddress)) {
+          return (
+            <div>
+              ABHA Address can only contain letters, numbers, a dot (.) or an underscore (_).
+              <br />
+              The dot (.) or underscore (_) must not be at the beginning or end and should not appear consecutively.
+            </div>
+          );
+        }
+        return null;
+      };
+
 	async function onCreate() {
 		setError("");
-		if (newAbhaAddress === "") {
-			setError("ABHA Address cannot be empty");
-		} else if (newAbhaAddress.length > 3) {
+		const validationError = validateAbhaAddress(newAbhaAddress);
+        if (validationError) {
+            setError(validationError);
+        } else  {
 			setLoader(true);
 			var response = await createABHAAddress(newAbhaAddress);
 			setLoader(false);
@@ -50,8 +73,6 @@ const CreateABHAAddress = (props) => {
 				setNewAbhaAddress(newAbhaAddress.concat(cmSuffix));
 				props.setABHAAddressCreated(true);
 			}
-		} else {
-			setError("ABHA Address should have minimum of 4 characters");
 		}
 	}
 
@@ -65,7 +86,7 @@ const CreateABHAAddress = (props) => {
 							id="free-solo-demo"
 							freeSolo
 							options={abhaAddressSuggestions.map((option) => option.label)}
-							loading={lodingAbhaAddressSuggestions}
+                            loading={loadingAbhaAddressSuggestions}
 							inputValue={newAbhaAddress}
 							onInputChange={(event, value) => setNewAbhaAddress(value)}
 							renderInput={(params) => (
@@ -80,7 +101,7 @@ const CreateABHAAddress = (props) => {
 										),
 									}}
 									noOptionsText={
-										lodingAbhaAddressSuggestions
+                                        loadingAbhaAddressSuggestions
 											? "Getting suggestions..."
 											: "No suggestions"
 									}
@@ -108,3 +129,4 @@ const CreateABHAAddress = (props) => {
 };
 
 export default CreateABHAAddress;
+
