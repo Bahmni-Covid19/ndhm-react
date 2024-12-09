@@ -76,7 +76,6 @@ const VerifyOTPAndCreateABHA = (props) => {
 	}
 
 	const handleOtpResend = async () => {
-		console.log("Resending OTP ....");
 		setShowResendSuccessMessage(false);
 		setError('');
 		setIsLoading(true);
