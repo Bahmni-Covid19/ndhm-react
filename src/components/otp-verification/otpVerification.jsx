@@ -131,19 +131,27 @@ const OtpVerification = (props) => {
 
     return (
         <div>
-            {!checkIfNotNull(ndhmDetails) && <div className="otp-verify" >
-                <label htmlFor="otp">Enter OTP </label>
-                <div className="otp-verify-input-btn" >
-                    <div className="otp-verify-input">
-                        <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler} />
+            {!checkIfNotNull(ndhmDetails) &&
+                <div>
+                    <div className="otp-verify">
+                        <label htmlFor="otp">Enter OTP </label>
+                        <div className="otp-verify-input-btn">
+                            <div className="otp-verify-input">
+                                <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler}/>
+                            </div>
+                            <ResendOtp onResend={onResendOtp}/>
+                            {showResendSuccessMessage && <div className="success_text">OTP Sent Successfully</div>}
+                            {showError && <h6 className="error">{errorMessage}</h6>}
+                        </div>
                     </div>
-                     <ResendOtp onResend={onResendOtp}/>
-                    {showResendSuccessMessage && <div className="success_text">OTP Sent Successfully</div>}
-                    {showError && <h6 className="error">{errorMessage}</h6>}
-                    <button type="button" style={{marginTop: "10px"}} disabled={checkIfNotNull(ndhmDetails)} onClick={confirmAuth}>Fetch ABDM Data</button>
+                    <div className="qr-code-scanner">
+                        <button type="button" style={{marginTop: "10px"}} disabled={checkIfNotNull(ndhmDetails)}
+                                onClick={confirmAuth}>Fetch ABDM Data
+                        </button>
+                    </div>
                 </div>
-            </div>}
-            {loader && <Spinner />}
+            }
+            {loader && <Spinner/>}
         </div>
     );
 }
