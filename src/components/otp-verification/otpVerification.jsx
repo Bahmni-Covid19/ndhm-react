@@ -33,6 +33,7 @@ const OtpVerification = (props) => {
             if(props.isVerifyByAbhaAddress){
                 const response = await abhaAddressVerifyOtp(otp);
                 if(response.data !== undefined) {
+                    if(response.data.authResult === "success"){
                     const getProfileResponse= await getAbhaAddressProfile();
                     if(getProfileResponse.data != undefined) {
                         setNdhmDetails(mapPatient(getProfileResponse.data));
@@ -40,6 +41,10 @@ const OtpVerification = (props) => {
                     else {
                         setShowError(true);
                         setErrorMessage(getProfileResponse.error.message);
+                    }}
+                    else{
+                        setShowError(true);
+                        setErrorMessage(response.data.message);
                     }
 
                 }
@@ -51,6 +56,7 @@ const OtpVerification = (props) => {
             else{
                 const response = await abhaNumberVerifyOtp(otp);
                 if(response.data !== undefined) {
+                    if(response.data.authResult === "success"){
                     const getProfileResponse= await getPatientProfile();
                     if(getProfileResponse.data != undefined) {
                         setNdhmDetails(mapPatient(getProfileResponse.data));
@@ -58,6 +64,10 @@ const OtpVerification = (props) => {
                     else {
                         setShowError(true);
                         setErrorMessage(getProfileResponse.error.message);
+                    }}
+                    else{
+                        setShowError(true);
+                        setErrorMessage(response.data.message);
                     }
 
                 }
