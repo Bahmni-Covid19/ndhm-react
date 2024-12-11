@@ -15,6 +15,7 @@ import CreateHealthId from "../otp-verification/create-healthId";
 import {enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
 import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumber";
 import { formatAbhaNumber, validateAbhaNumber } from "../Common/FormatAndValidationUtils";
+import VerifyThroughAadhaarNumber from "./verifyThroughAadhaarNumber";
 
 const VerifyHealthId = () => {
     const [abhaNumber, setAbhaNumber] = useState('');
@@ -236,6 +237,7 @@ const VerifyHealthId = () => {
                                 <option value="ABHA_NUMBER">ABHA Number</option>
                                 <option value="ABHA_ADDRESS">ABHA Address</option>
                                 {isVerifyThroughMobileNumberEnabled && <option value="MOBILE_NUMBER">Mobile Number</option> }
+                                <option value="AADHAAR_NUMBER">Aadhaar Number</option>
                             </select>
                         </div>
                     </div>
@@ -269,6 +271,11 @@ const VerifyHealthId = () => {
                     <VerifyHealthIdThroughMobileNumber isDisabled={showAuthModes} setIsDisabled={setIsDisabled} setIsMobileOtpVerified={setIsMobileOtpVerified}
                                                        ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>
                 </div>}
+                {selectedIdentifierType ==="AADHAAR_NUMBER" &&
+                <div>
+                    <VerifyThroughAadhaarNumber setIsDisabled={setIsDisabled} setNdhmDetails={setNdhmDetails}/>
+                </div>
+                }
                 {matchingPatientFound && <div className="patient-existed" onClick={redirectToPatientDashboard}>
                     Matching record with Health ID/PHR Address found
                 </div>}

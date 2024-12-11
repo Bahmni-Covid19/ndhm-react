@@ -450,7 +450,8 @@ export const getAbhaAddresCard = async () => {
 
 export const abhaNumberRequestOtp = async (abhaNumber, authMode) => {
     const data = {
-        "abhaNumber": abhaNumber,
+        "identifier": abhaNumber,
+        "identifierType": "ABHA_NUMBER",
         "authMethod": authMode,
     };
     try {
@@ -463,6 +464,33 @@ export const abhaNumberRequestOtp = async (abhaNumber, authMode) => {
 };
 
 export const abhaNumberVerifyOtp = async (otp) => {
+    const data = {
+        "otp": otp,
+    };
+    try {
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationVerifyOtp, data, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
+    }
+};
+
+export const aadhaarNumberRequestOtp = async (aadhaarNumber) => {
+    const data = {
+        "identifier": aadhaarNumber,
+        "identifierType": "AADHAAR_NUMBER",
+    };
+    try {
+        const response = await axios.post(Constants.hipServiceUrl + Constants.verificationRequestOtp, data, Constants.headers);
+        return response;
+    }
+    catch (error) {
+        return parseAPIError(error);
+    }
+};
+
+export const aadhaarNumberVerifyOtp = async (otp) => {
     const data = {
         "otp": otp,
     };
@@ -503,7 +531,8 @@ export const updateHealthId = async (healthId) => {
 
 export const mobileGenerateOtp = async (mobileNumber) => {
     const data = {
-        "mobileNumber": mobileNumber
+        "identifier": mobileNumber,
+        "identifierType": "MOBILE_NUMBER",
     };
     try {
         const response = await axios.post(Constants.hipServiceUrl + Constants.verificationRequestOtp, data, Constants.headers);
