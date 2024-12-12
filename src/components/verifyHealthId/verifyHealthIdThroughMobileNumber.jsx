@@ -11,6 +11,7 @@ import './verifyHealthId.scss';
 import {checkIfNotNull} from "./verifyHealthId";
 import {mapPatient} from "../Common/patientMapper";
 import { validateMobileNumber, validateOtp } from "../Common/FormatAndValidationUtils";
+import ResendOtp from "../Common/ResendOtp";
 
 const VerifyHealthIdThroughMobileNumber = (props) => {
     const [mobileNumber, setMobileNumber] = useState('');
@@ -25,6 +26,7 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
     const [isHealthIdNotLinked, setIsHealthIdNotLinked] = useState(false);
     const [error, setError] = useState('');
     const [selectedABHA, setSelectedABHA] = useState({});
+    const [showResendSuccessMessage, setShowResendSuccessMessage] = useState(false);
 
     function idOnChangeHandler(e) {
         setShowError(false);
@@ -35,6 +37,22 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
 
     function otpOnChangeHandler(e) {
         setOtp(e.target.value);
+    }
+
+    async function onResendOtp() {
+        setError("");
+        setLoader(true);
+        setShowError(false);
+        var response = await mobileGenerateOtp(mobileNumber) ;
+        setLoader(false);
+        if (response.error) {
+            setShowError(true);
+            setError(response.error.message);
+        }
+        else{
+            setShowResendSuccessMessage(true);
+            setTimeout(()=>{setShowResendSuccessMessage(false);},3000)
+        }
     }
 
     async function verifyMobileNumber() {
@@ -192,16 +210,21 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
                         </div>
                     </div>
                     {showOtpInput &&
+                        <div>
                     <div className="otp-verify" >
                         <label htmlFor="otp">Enter OTP </label>
                         <div className="otp-verify-input-btn" >
                             <div className="otp-verify-input">
                                 <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler} />
                             </div>
-                            <button type="button" onClick={verifyOtp}>Confirm</button>
+                            <ResendOtp onResend={onResendOtp} />
+                            {showResendSuccessMessage && <div className="success_text">OTP Sent Successfully</div>}
                             {showError && <h6 className="error ">{error}</h6>}
                         </div>
-                    </div>}
+                    </div>
+                            <div className="qr-code-scanner"> <button type="button" onClick={verifyOtp}>Confirm</button></div>
+                        </div>
+                    }
                     {loader && <Spinner />}
                 </div>}
                 {linkedABHANumber.length > 0 &&

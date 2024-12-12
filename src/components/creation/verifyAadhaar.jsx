@@ -103,7 +103,7 @@ const VerifyAadhaar = props => {
             {error !== '' && <h6 className="error">{error}</h6>}
             {loader && <Spinner />}
            </div>}
-           {showOtpInput && <VerifyOTPAndCreateABHA mobile={otpReceivingNumber}/>}
+           {showOtpInput && <VerifyOTPAndCreateABHA aadhaar={aadhaar} mobile={otpReceivingNumber}/>}
            {showDemographics && <DemoAuth aadhaar={aadhaar} isAadhaarDemoAuth={true} />}
         </div>
 

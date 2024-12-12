@@ -4,6 +4,7 @@ import VerifyOTP from "./verifyOtp";
 import Spinner from "../spinner/spinner";
 import {generateMobileOtp, verifyMobileOtp} from "../../api/hipServiceApi";
 import {GoVerified} from "react-icons/all";
+import ResendOtp from "../Common/ResendOtp";
 
 const VerifyMobile = (props) => {
     const mobile = props.mobile;
@@ -14,6 +15,8 @@ const VerifyMobile = (props) => {
     const [proceed, setProceed] = useState(false);
     const [otp, setOtp] = useState('');
     const [otpVerified, setOtpVerified] = useState(false);
+    const [showResendOtp, setshowResendOtp] = useState(false);
+    const [showResendSuccessMessage,setShowResendSuccessMessage] = useState(false);
 
 
     function resetToDefault(){
@@ -28,11 +31,26 @@ const VerifyMobile = (props) => {
 			setLoader(true);
 			var response = await generateMobileOtp(mobile);
 			setLoader(false);
+            setshowResendOtp(true);
 			if (response.error) {
 				setError(response.error.message);
 			}
             else{
                 setShowOtpInput(true);
+            }
+		}
+
+        async function onResendOtp() {
+            setError("");
+			setLoader(true);
+			var response = await generateMobileOtp(mobile);
+			setLoader(false);
+			if (response.error) {
+				setError(response.error.message);
+			}
+            else{
+                setShowResendSuccessMessage(true);
+			    setTimeout(()=>{setShowResendSuccessMessage(false);},3000)
             }
 		}
 
@@ -88,6 +106,9 @@ const VerifyMobile = (props) => {
                             </div>
                         </div>
                     </div>
+            
+                    {showResendOtp && <div className="center"><ResendOtp onResend={onResendOtp}/> </div>}
+                    {showResendSuccessMessage && <div className="success_text center">OTP Sent Successfully</div>}
                     {showOtpInput && <VerifyOTP setOtp={setOtp} disabled={otpVerified} mobile={mobile}/>}
                     {error !== '' && <h6 className="error">{error}</h6>}
                     {loader && <Spinner/>}

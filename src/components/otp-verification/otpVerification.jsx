@@ -4,13 +4,14 @@ import {
     abhaNumberVerifyOtp,
     getPatientProfile,
     abhaAddressVerifyOtp,
-    getAbhaAddressProfile
+    getAbhaAddressProfile, abhaNumberRequestOtp, abhaAddressRequestOtp
 } from '../../api/hipServiceApi';
 import Spinner from '../spinner/spinner';
 import {checkIfNotNull} from "../verifyHealthId/verifyHealthId";
 import {getDate} from "../Common/DateUtil";
 import {mapPatient} from "../Common/patientMapper";
 import { validateOtp } from "../Common/FormatAndValidationUtils";
+import ResendOtp from "../Common/ResendOtp";
 
 const OtpVerification = (props) => {
     const [otp, setOtp] = useState('');
@@ -18,6 +19,27 @@ const OtpVerification = (props) => {
     const [errorMessage, setErrorMessage] = useState('');
     const [showError, setShowError] = useState(false);
     const [loader, setLoader] = useState(false);
+    const [showResendSuccessMessage, setShowResendSuccessMessage] = useState(false);
+    const isVerifyByAbhaAddress = props.isVerifyByAbhaAddress;
+
+
+    async function onResendOtp() {
+        setErrorMessage("");
+        setLoader(true);
+        const response = isVerifyByAbhaAddress
+            ? await abhaAddressRequestOtp(props.id, props.selectedAuthMode)
+            : await abhaNumberRequestOtp(props.id, props.selectedAuthMode);
+        setLoader(false);
+        if (response.error) {
+            setShowError(true);
+            setErrorMessage(response.error.message);
+        }
+        else{
+            setShowResendSuccessMessage(true);
+            setTimeout(()=>{setShowResendSuccessMessage(false);},3000)
+        }
+    }
+
 
 
     async function confirmAuth() {
@@ -105,17 +127,27 @@ const OtpVerification = (props) => {
 
     return (
         <div>
-            {!checkIfNotNull(ndhmDetails) && <div className="otp-verify" >
-                <label htmlFor="otp">Enter OTP </label>
-                <div className="otp-verify-input-btn" >
-                    <div className="otp-verify-input">
-                        <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler} />
+            {!checkIfNotNull(ndhmDetails) &&
+                <div>
+                    <div className="otp-verify">
+                        <label htmlFor="otp">Enter OTP </label>
+                        <div className="otp-verify-input-btn">
+                            <div className="otp-verify-input">
+                                <input type="text" id="otp" name="otp" value={otp} onChange={otpOnChangeHandler}/>
+                            </div>
+                            <ResendOtp onResend={onResendOtp}/>
+                            {showResendSuccessMessage && <div className="success_text">OTP Sent Successfully</div>}
+                            {showError && <h6 className="error">{errorMessage}</h6>}
+                        </div>
                     </div>
-                    <button type="button" disabled={checkIfNotNull(ndhmDetails)} onClick={confirmAuth}>Fetch ABDM Data</button>
-                    {showError && <h6 className="error">{errorMessage}</h6>}
+                    <div className="qr-code-scanner">
+                        <button type="button" style={{marginTop: "10px"}} disabled={checkIfNotNull(ndhmDetails)}
+                                onClick={confirmAuth}>Fetch ABDM Data
+                        </button>
+                    </div>
                 </div>
-            </div>}
-            {loader && <Spinner />}
+            }
+            {loader && <Spinner/>}
         </div>
     );
 }

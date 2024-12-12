@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import "./creation.scss";
+import "../Common/common.scss"
 import Spinner from "../spinner/spinner";
-import { verifyAadhaarOtpAndCreateABHA } from "../../api/hipServiceApi";
+import {generateAadhaarOtp, verifyAadhaarOtpAndCreateABHA} from "../../api/hipServiceApi";
 import VerifyMobile from "./VerifyMobile";
 import LinkABHAAddress from "./LinkABHAAddress";
 import {GoVerified} from "react-icons/all";
 import { getCityFromAddressLine } from "../Common/patientMapper";
+import ResendOtp from "../Common/ResendOtp";
 
 const VerifyOTPAndCreateABHA = (props) => {
 	const [otp, setOtp] = useState("");
@@ -20,6 +22,7 @@ const VerifyOTPAndCreateABHA = (props) => {
 	const [mappedPatient, setMappedPatient] = useState({});
 	const [abhaCreationResponseData, setAbhaCreationResponseData] = useState(null);
 	const [proceed, setProceed] = useState(false);
+	const [showResendSuccessMessage, setShowResendSuccessMessage] = useState(false);
 
 	function otpOnChangeHandler(e) {
 		setOtp(e.target.value);
@@ -45,6 +48,7 @@ const VerifyOTPAndCreateABHA = (props) => {
 
 	async function verifyOTP() {
         setError("");
+		setShowResendSuccessMessage(false);
 		setIsLoading(true);
 		var response = await verifyAadhaarOtpAndCreateABHA(otp, mobile);
 		setIsLoading(false);
@@ -69,6 +73,23 @@ const VerifyOTPAndCreateABHA = (props) => {
 
 	function onMobileVerifySuccess() {
 		setIsMobileVerified(true);
+	}
+
+	const handleOtpResend = async () => {
+		setShowResendSuccessMessage(false);
+		setError('');
+		setIsLoading(true);
+		var aadhaarOtpResponse = await generateAadhaarOtp(props.aadhaar);
+		setIsLoading(false);
+		if(aadhaarOtpResponse){
+			if(aadhaarOtpResponse.error){
+				setError(aadhaarOtpResponse.error.message);
+			}
+			else {
+			  setShowResendSuccessMessage(true);
+			  setTimeout(()=>{setShowResendSuccessMessage(false);},30000)
+			}
+		}
 	}
 
 	function mapPatient() {
@@ -121,6 +142,10 @@ const VerifyOTPAndCreateABHA = (props) => {
 							</div>
 						</div>
 					</div>
+					<div className="center">
+						<ResendOtp onResend={handleOtpResend} />
+					</div>
+					{showResendSuccessMessage && <div className="success_text center">OTP Sent Successfully</div>}
 					<div className="input-and-label">
 						<label htmlFor="mobile" className="label">
 							Mobile Number used for ABHA Communications
