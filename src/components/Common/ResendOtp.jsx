@@ -8,14 +8,16 @@ const ResendOtp = ({onResend}) => {
     const [attemptsLeft, setAttemptsLeft] = useState(2);
 
     useEffect(() => {
-        if (timeLeft > 0) {
-            const interval = setInterval(() => {
-                setTimeLeft(timeLeft - 1);
-            }, 1000);
-
-            return () => clearInterval(interval);
-        } else
+        if (timeLeft <= 0) {
             setResendOtpDisabled(false);
+            return;
+        }
+
+        const interval = setInterval(() => {
+            setTimeLeft((prev) => prev - 1);
+        }, 1000);
+
+        return () => clearInterval(interval);
     }, [timeLeft]);
 
     const handleResendClick = () => {
