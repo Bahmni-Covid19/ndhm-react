@@ -37,7 +37,7 @@ const PatientQueue = (props) => {
 
     async function getMatchingPatient(patient) {
         const matchingPatientId = await fetchPatientFromBahmniWithHealthId(patient.abhaAddress);
-        if (matchingPatientId.Error === undefined && matchingPatientId.validPatientId === true){
+        if (matchingPatientId.Error === undefined && matchingPatientId.validPatient === true){
            setMatchFound(matchingPatientId.patientUuid);
         }
         const ndhm = {
@@ -73,7 +73,7 @@ const PatientQueue = (props) => {
             {patient.length == 0 && !loading && error === "" && 
                 <center><h3>No patient found</h3></center>
             }
-            {patient.length > 0 && !checkIfNotNull(selectedPatient) && <table>
+            {patient.length > 0 && !checkIfNotNull(selectedPatient) && matchFound === null && <table>
                 <tbody>
                 <th>Token Number</th>
                 <th>Patient</th>
@@ -91,8 +91,8 @@ const PatientQueue = (props) => {
 
                 </tbody>
             </table>}
-            {!matchFound && checkIfNotNull(selectedPatient) && <PatientDetails ndhmDetails={selectedPatient} setBack={setBack} enableABHACardView={false}/>}
-            {matchFound && <div>
+            {matchFound === null && checkIfNotNull(selectedPatient) && <PatientDetails ndhmDetails={selectedPatient} setBack={setBack} enableABHACardView={false}/>}
+            {matchFound !== null  && <div>
                 <b>ABDM Record: </b>
                 <PatientInfo patient={selectedPatient}/><br/>
                 <div className="patient-existed" onClick={redirectToPatientDashboard}>
