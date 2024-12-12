@@ -26,13 +26,9 @@ const OtpVerification = (props) => {
     async function onResendOtp() {
         setErrorMessage("");
         setLoader(true);
-        var response;
-        if(isVerifyByAbhaAddress){
-            response = await abhaAddressRequestOtp(props.id, props.selectedAuthMode);
-        }
-        else{
-            response = await abhaNumberRequestOtp(props.id, props.selectedAuthMode);
-        }
+        const response = isVerifyByAbhaAddress
+            ? await abhaAddressRequestOtp(props.id, props.selectedAuthMode)
+            : await abhaNumberRequestOtp(props.id, props.selectedAuthMode);
         setLoader(false);
         if (response.error) {
             setShowError(true);
