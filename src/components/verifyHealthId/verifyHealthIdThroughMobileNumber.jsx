@@ -93,8 +93,15 @@ const VerifyHealthIdThroughMobileNumber = (props) => {
                     setError(response.error.message);
                 }
                 else {
-                    props.setIsMobileOtpVerified(true);
-                    setLinkedABHANumber(response.data.accounts);
+                    if (response.data.authResult === "success") {
+                        props.setIsMobileOtpVerified(true);
+                        setLinkedABHANumber(response.data.accounts);
+                    }
+                    else{
+                        setShowError(true);
+                        setError(response.data.message);
+                    }
+                    
                 }
             }
         }

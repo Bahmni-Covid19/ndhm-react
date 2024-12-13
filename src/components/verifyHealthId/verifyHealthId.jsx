@@ -247,7 +247,7 @@ const VerifyHealthId = () => {
                             <div className="verify-health-id-input">
                                 <input type="text" id="abhaNumber" name="abhaNumber" value={abhaNumber} onChange={abhaNumberOnChangeHandler} />
                             </div>
-                            <button name="verify-btn" type="button" onClick={verifyAbhaNumber} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Verify</button>
+                            <button name="verify-btn" type="button" onClick={verifyAbhaNumber} disabled={showAuthModes || checkIfNotNull(ndhmDetails) || isDisabled}>Proceed</button>
                         </div>
                 </div>
                 }
