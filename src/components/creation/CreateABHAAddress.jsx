@@ -121,6 +121,17 @@ const CreateABHAAddress = (props) => {
 					Create
 				</button>
 			</div>
+		    <div>
+				<p className="validation-rule">
+				    Abha Address should contain : <br />
+                     1. Minimum 8 characters. <br />
+                     2. Maximum 18 characters. <br />
+                     3. Special characters allowed 1 dot (.) and/or 1 underscore (_). <br />
+                     4. Special character dot and underscore should be in between. <br/>
+					 5. Special characters cannot be in the beginning or at the end.<br />
+                     6. Alphanumeric - only numbers, only letters or any combination of numbers and letters is allowed.
+				</p>
+			</div>
 			{loader && <Spinner />}
 			{error !== "" && <h6 className="error">{error}</h6>}
 			<Footer setBack={props.setBack} />
