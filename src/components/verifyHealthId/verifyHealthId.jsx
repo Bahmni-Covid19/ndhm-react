@@ -41,6 +41,8 @@ const VerifyHealthId = () => {
     const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
     const [isVerifyByAbhaAddress, setIsVerifyByAbhaAddress] = useState(false);
     const [selectedIdentifierType, setSelectedIdentifierType] = useState('');
+    const [enableABHACardView, setEnableABHACardView] = useState(true);
+
 
     function identifierTypeOnChangeHandler(e) {
         setShowError(false);
@@ -157,6 +159,7 @@ const VerifyHealthId = () => {
     }
 
     async function handleScan(scannedData) {
+        setEnableABHACardView(false);
         if (scannedData != null) {
             var ndhmDetails = mapToNdhmDetails(scannedData)
             setScanningStatus(false);
@@ -288,7 +291,10 @@ const VerifyHealthId = () => {
             {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={abhaNumber} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
             {(isVerifyThroughABHASerice || isVerifyThroughMobileNumberEnabled) && checkIfNotNull(ndhmDetails) && ndhmDetails.id === undefined  && <CreateHealthId ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsHealthIdCreated={setIsHealthIdCreated} />}
             {!matchingPatientFound && !healthIdIsVoided && checkIfNotNull(ndhmDetails) && (ndhmDetails.id !== undefined || isHealthIdCreated || isVerifyABHAThroughFetchModes)
-             && <PatientDetails enableABHACardView={true} ndhmDetails={ndhmDetails} id={abhaNumber} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
+                && <PatientDetails enableABHACardView={enableABHACardView} ndhmDetails={ndhmDetails} id={abhaNumber}
+                                   setBack={setBack}
+                                   isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated}
+                                   isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
         </div>
     );
 }
