@@ -72,10 +72,10 @@ const VerifyHealthId = () => {
             setErrorMessage("Invalid ABHA Number. ABHA Number should be 14 digits");
             return;
         }
+        const formattedAbhaNumber = formatAbhaNumber(abhaNumber);
         setLoader(true);
         setShowError(false);
-        setIsVerifyByAbhaAddress(false);
-        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(abhaNumber);
+        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(formattedAbhaNumber);
         const healthIdStatus = matchingPatientId.Error !== undefined ? await getHealthIdStatus(matchingPatientId.patientUuid) : false;
         if (matchingPatientId.Error === undefined) {
             if(healthIdStatus === true)
