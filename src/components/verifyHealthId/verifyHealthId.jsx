@@ -97,34 +97,45 @@ const VerifyHealthId = () => {
     }
 
     async function searchByAbhaAddress() {
-        setShowError(false);
-        setErrorMessage('');
         if(abhaAddress === ''){
             setShowError(true);
             setErrorMessage("Please enter ABHA Address");
             return;
         }
         setLoader(true);
-        const response = await searchAbhaAddress(abhaAddress);
-        setLoader(false);
-        setIsVerifyByAbhaAddress(true);
-        if(response.data !== undefined){
-            setIsVerifyThroughABHAService(true);
-            if(response.data.status === "ACTIVE") {
-                setShowAuthModes(true);
-                setAuthModes(response.data.authMethods !== undefined ?
-                    response.data.authMethods.filter(e => supportedHealthIdAuthModes.includes(e)) : []);
-            }
-            else
-            {
-                setShowError(true)
-                setErrorMessage("Abha address is not active");
+        setShowError(false);
+        setErrorMessage('');
+        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(abhaAddress);
+        console.log(matchingPatientId);
+        const healthIdStatus = matchingPatientId.Error !== undefined ? await getHealthIdStatus(matchingPatientId.patientUuid) : false;
+        if (matchingPatientId.Error === undefined) {
+            if (healthIdStatus === true)
+                setHealthIdIsVoided(true);
+            else if (matchingPatientId.validPatient === true) {
+                setMatchingPatientFound(true);
+                setMatchingPatientUuid(matchingPatientId.patientUuid);
+            } else {
+                const response = await searchAbhaAddress(abhaAddress);
+                setLoader(false);
+                setIsVerifyByAbhaAddress(true);
+                if (response.data !== undefined) {
+                    setIsVerifyThroughABHAService(true);
+                    if (response.data.status === "ACTIVE") {
+                        setShowAuthModes(true);
+                        setAuthModes(response.data.authMethods !== undefined ?
+                            response.data.authMethods.filter(e => supportedHealthIdAuthModes.includes(e)) : []);
+                    } else {
+                        setShowError(true)
+                        setErrorMessage("Abha address is not active");
+                    }
+                }
             }
         }
         else {
             setShowError(true)
-            setErrorMessage(response.error.message);
+            setErrorMessage(matchingPatientId.error.message);
         }
+        setLoader(false);
     }
 
     function getIfVaild(str){
