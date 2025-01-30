@@ -3,26 +3,48 @@ export const parseAPIError = (error) => {
     if (!error.response?.data) {
         return Constants.serviceUnavailableError;
     }
+    var errorObject = { "error": { "message": "An error occurred while processing your request", "status": error.response.status}}
+
     var errorResponseData = error.response.data;
     if (errorResponseData instanceof Array){
         errorResponseData = errorResponseData[0];
     }
     if (errorResponseData.message)
-        return { "error": { "message": errorResponseData.message } }
+    {
+        errorObject.error.message = errorResponseData.message;
+        return errorObject;
+    }
     if (errorResponseData.error?.message)
-        return { "error": { "message": errorResponseData.error.message } }
-    if (errorResponseData.details !== undefined && errorResponseData.details.length > 0)
-        return { "error": { "message": errorResponseData.details[0].message } }
+    {
+        errorObject.error.message = errorResponseData.error.message;
+        return errorObject;
+    }
+    if (errorResponseData.details !== undefined && errorResponseData.details.length > 0){
+        errorObject.error.message = errorResponseData.details[0].message;
+        return errorObject;
+    }
     if (errorResponseData.error !== undefined && typeof errorResponseData.error === 'string')
-        return { "error": { "message": errorResponseData.error } }
+    {
+        errorObject.error.message = errorResponseData.error;
+        return errorObject;
+    }
     let extractedErrorMessage = extractErrorMessage(errorResponseData)
     if (extractedErrorMessage !== undefined)
-        return extractedErrorMessage
-    if (error.status === 400)
-        return { "error": { "message": "Bad Request: Please verify the entered input" } }
-    if (error.status === 500)
-        return { "error": { "message": "Internal Server Error: Please try again later" } }
-    return { "error": { "message": "An error occurred while processing your request" } }
+    {
+        errorObject.error.message = extractedErrorMessage;
+        return errorObject;
+    }
+    if (error.response.status === 400)
+    {
+        errorObject.error.message = "Bad Request: Please verify the entered input";
+        return errorObject;
+    }
+    if (error.response.status === 500)
+    {
+        errorObject.error.message = "Internal Server Error: Please try again later";
+        return errorObject;
+    }
+    return errorObject;
 }
 
 const extractErrorMessage = (errorResponseData) => {

@@ -31,11 +31,11 @@ const VerifyMobile = (props) => {
 			setLoader(true);
 			var response = await generateMobileOtp(mobile);
 			setLoader(false);
-            setshowResendOtp(true);
 			if (response.error) {
-				setError(response.error.message);
+                setError(response.error.message);
 			}
             else{
+                setshowResendOtp(true);
                 setShowOtpInput(true);
             }
 		}
@@ -46,6 +46,8 @@ const VerifyMobile = (props) => {
 			var response = await generateMobileOtp(mobile);
 			setLoader(false);
 			if (response.error) {
+                if(response.error.status === 429)
+                    setshowResendOtp(false);
 				setError(response.error.message);
 			}
             else{
