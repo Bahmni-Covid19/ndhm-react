@@ -12,7 +12,11 @@ import { FcWebcam } from 'react-icons/fc';
 import './verifyHealthId.scss';
 import DemoAuth from "../demo-auth/demoAuth";
 import CreateHealthId from "../otp-verification/create-healthId";
-import {enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
+import {
+    abhaAddressUnavailableError, activeStatus,
+    enableHealthIdVerificationThroughMobileNumber,
+    inactiveAbhaAddressError
+} from "../../api/constants";
 import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumber";
 import { formatAbhaNumber, validateAbhaNumber } from "../Common/FormatAndValidationUtils";
 import VerifyThroughAadhaarNumber from "./verifyThroughAadhaarNumber";
@@ -97,43 +101,42 @@ const VerifyHealthId = () => {
     }
 
     async function searchByAbhaAddress() {
-        if(abhaAddress === ''){
+        if(!abhaAddress?.trim()){
             setShowError(true);
-            setErrorMessage("Please enter ABHA Address");
+            setErrorMessage(abhaAddressUnavailableError.error.message);
             return;
         }
         setLoader(true);
         setShowError(false);
         setErrorMessage('');
-        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(abhaAddress);
-        console.log(matchingPatientId);
-        const healthIdStatus = matchingPatientId.Error !== undefined ? await getHealthIdStatus(matchingPatientId.patientUuid) : false;
-        if (matchingPatientId.Error === undefined) {
+        const existingPatientId = await fetchPatientFromBahmniWithHealthId(abhaAddress);
+        const healthIdStatus = existingPatientId?.Error ? await getHealthIdStatus(existingPatientId.patientUuid) : false;
+        if (existingPatientId?.Error === undefined) {
             if (healthIdStatus === true)
                 setHealthIdIsVoided(true);
-            else if (matchingPatientId.validPatient === true) {
+            else if (existingPatientId?.validPatient === true) {
                 setMatchingPatientFound(true);
-                setMatchingPatientUuid(matchingPatientId.patientUuid);
+                setMatchingPatientUuid(existingPatientId.patientUuid);
             } else {
                 const response = await searchAbhaAddress(abhaAddress);
                 setLoader(false);
                 setIsVerifyByAbhaAddress(true);
                 if (response.data !== undefined) {
                     setIsVerifyThroughABHAService(true);
-                    if (response.data.status === "ACTIVE") {
+                    if (response.data.status === activeStatus) {
                         setShowAuthModes(true);
                         setAuthModes(response.data.authMethods !== undefined ?
                             response.data.authMethods.filter(e => supportedHealthIdAuthModes.includes(e)) : []);
                     } else {
                         setShowError(true)
-                        setErrorMessage("Abha address is not active");
+                        setErrorMessage(inactiveAbhaAddressError.error.message);
                     }
                 }
             }
         }
         else {
             setShowError(true)
-            setErrorMessage(matchingPatientId.error.message);
+            setErrorMessage(existingPatientId.error.message);
         }
         setLoader(false);
     }
