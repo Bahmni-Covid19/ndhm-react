@@ -9,27 +9,8 @@ export const parseAPIError = (error) => {
     if (errorResponseData instanceof Array){
         errorResponseData = errorResponseData[0];
     }
-    if (errorResponseData.message)
-    {
-        errorObject.error.message = errorResponseData.message;
-        return errorObject;
-    }
-    if (errorResponseData.error?.message)
-    {
-        errorObject.error.message = errorResponseData.error.message;
-        return errorObject;
-    }
-    if (errorResponseData.details !== undefined && errorResponseData.details.length > 0){
-        errorObject.error.message = errorResponseData.details[0].message;
-        return errorObject;
-    }
-    if (errorResponseData.error !== undefined && typeof errorResponseData.error === 'string')
-    {
-        errorObject.error.message = errorResponseData.error;
-        return errorObject;
-    }
-    let extractedErrorMessage = extractErrorMessage(errorResponseData)
-    if (extractedErrorMessage !== undefined)
+    let extractedErrorMessage = extractErrorMessageFromPayload(errorResponseData)
+    if (extractedErrorMessage)
     {
         errorObject.error.message = extractedErrorMessage;
         return errorObject;
@@ -47,7 +28,13 @@ export const parseAPIError = (error) => {
     return errorObject;
 }
 
-const extractErrorMessage = (errorResponseData) => {
+const extractErrorMessageFromPayload = (errorResponseData) => {
+    let errorMessage =  errorResponseData?.message || errorResponseData?.error?.message || errorResponseData?.details?.[0]?.message;
+    if(errorMessage)
+        return errorMessage
+    if (typeof errorResponseData?.error === 'string') {
+        return errorResponseData.error;
+    }
     if (typeof errorResponseData === 'object')
         for (var key in errorResponseData) {
             if (key !== 'timestamp') {
