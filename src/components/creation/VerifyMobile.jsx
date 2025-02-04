@@ -15,7 +15,7 @@ const VerifyMobile = (props) => {
     const [proceed, setProceed] = useState(false);
     const [otp, setOtp] = useState('');
     const [otpVerified, setOtpVerified] = useState(false);
-    const [showResendOtp, setshowResendOtp] = useState(false);
+    const [showResendOtp, setShowResendOtp] = useState(false);
     const [showResendSuccessMessage,setShowResendSuccessMessage] = useState(false);
 
 
@@ -35,7 +35,7 @@ const VerifyMobile = (props) => {
                 setError(response.error.message);
 			}
             else{
-                setshowResendOtp(true);
+                setShowResendOtp(true);
                 setShowOtpInput(true);
             }
 		}
@@ -47,7 +47,7 @@ const VerifyMobile = (props) => {
 			setLoader(false);
 			if (response.error) {
                 if(response.error.status === 429)
-                    setshowResendOtp(false);
+                    setShowResendOtp(false);
 				setError(response.error.message);
 			}
             else{
@@ -57,7 +57,7 @@ const VerifyMobile = (props) => {
 		}
 
     async function verifyOtp() {
-        if (otp === '') {
+        if (!otp.trim()) {
             setError("otp cannot be empty")
         } else {
             setLoader(true);
