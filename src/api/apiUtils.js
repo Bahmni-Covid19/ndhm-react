@@ -3,29 +3,38 @@ export const parseAPIError = (error) => {
     if (!error.response?.data) {
         return Constants.serviceUnavailableError;
     }
+    var errorObject = { "error": { "message": "An error occurred while processing your request", "status": error.response.status}}
+
     var errorResponseData = error.response.data;
     if (errorResponseData instanceof Array){
         errorResponseData = errorResponseData[0];
     }
-    if (errorResponseData.message)
-        return { "error": { "message": errorResponseData.message } }
-    if (errorResponseData.error?.message)
-        return { "error": { "message": errorResponseData.error.message } }
-    if (errorResponseData.details !== undefined && errorResponseData.details.length > 0)
-        return { "error": { "message": errorResponseData.details[0].message } }
-    if (errorResponseData.error !== undefined && typeof errorResponseData.error === 'string')
-        return { "error": { "message": errorResponseData.error } }
-    let extractedErrorMessage = extractErrorMessage(errorResponseData)
-    if (extractedErrorMessage !== undefined)
-        return extractedErrorMessage
-    if (error.status === 400)
-        return { "error": { "message": "Bad Request: Please verify the entered input" } }
-    if (error.status === 500)
-        return { "error": { "message": "Internal Server Error: Please try again later" } }
-    return { "error": { "message": "An error occurred while processing your request" } }
+    let extractedErrorMessage = extractErrorMessageFromPayload(errorResponseData)
+    if (extractedErrorMessage)
+    {
+        errorObject.error.message = extractedErrorMessage;
+        return errorObject;
+    }
+    if (error.response.status === 400)
+    {
+        errorObject.error.message = "Bad Request: Please verify the entered input";
+        return errorObject;
+    }
+    if (error.response.status === 500)
+    {
+        errorObject.error.message = "Internal Server Error: Please try again later";
+        return errorObject;
+    }
+    return errorObject;
 }
 
-const extractErrorMessage = (errorResponseData) => {
+const extractErrorMessageFromPayload = (errorResponseData) => {
+    let errorMessage =  errorResponseData?.message || errorResponseData?.error?.message || errorResponseData?.details?.[0]?.message;
+    if(errorMessage)
+        return errorMessage
+    if (typeof errorResponseData?.error === 'string') {
+        return errorResponseData.error;
+    }
     if (typeof errorResponseData === 'object')
         for (var key in errorResponseData) {
             if (key !== 'timestamp') {
