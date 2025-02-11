@@ -12,7 +12,11 @@ import { FcWebcam } from 'react-icons/fc';
 import './verifyHealthId.scss';
 import DemoAuth from "../demo-auth/demoAuth";
 import CreateHealthId from "../otp-verification/create-healthId";
-import {enableHealthIdVerificationThroughMobileNumber} from "../../api/constants";
+import {
+    abhaAddressUnavailableError, activeStatus,
+    enableHealthIdVerificationThroughMobileNumber,
+    inactiveAbhaAddressError
+} from "../../api/constants";
 import VerifyHealthIdThroughMobileNumber from "./verifyHealthIdThroughMobileNumber";
 import { formatAbhaNumber, validateAbhaNumber } from "../Common/FormatAndValidationUtils";
 import VerifyThroughAadhaarNumber from "./verifyThroughAadhaarNumber";
@@ -41,6 +45,8 @@ const VerifyHealthId = () => {
     const [isMobileOtpVerified, setIsMobileOtpVerified] = useState(false);
     const [isVerifyByAbhaAddress, setIsVerifyByAbhaAddress] = useState(false);
     const [selectedIdentifierType, setSelectedIdentifierType] = useState('');
+    const [enableABHACardView, setEnableABHACardView] = useState(true);
+
 
     function identifierTypeOnChangeHandler(e) {
         setShowError(false);
@@ -70,10 +76,10 @@ const VerifyHealthId = () => {
             setErrorMessage("Invalid ABHA Number. ABHA Number should be 14 digits");
             return;
         }
+        const formattedAbhaNumber = formatAbhaNumber(abhaNumber);
         setLoader(true);
         setShowError(false);
-        setIsVerifyByAbhaAddress(false);
-        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(abhaNumber);
+        const matchingPatientId = await fetchPatientFromBahmniWithHealthId(formattedAbhaNumber);
         const healthIdStatus = matchingPatientId.Error !== undefined ? await getHealthIdStatus(matchingPatientId.patientUuid) : false;
         if (matchingPatientId.Error === undefined) {
             if(healthIdStatus === true)
@@ -95,34 +101,44 @@ const VerifyHealthId = () => {
     }
 
     async function searchByAbhaAddress() {
-        setShowError(false);
-        setErrorMessage('');
-        if(abhaAddress === ''){
+        if(!abhaAddress?.trim()){
             setShowError(true);
-            setErrorMessage("Please enter ABHA Address");
+            setErrorMessage(abhaAddressUnavailableError.error.message);
             return;
         }
         setLoader(true);
-        const response = await searchAbhaAddress(abhaAddress);
-        setLoader(false);
-        setIsVerifyByAbhaAddress(true);
-        if(response.data !== undefined){
-            setIsVerifyThroughABHAService(true);
-            if(response.data.status === "ACTIVE") {
-                setShowAuthModes(true);
-                setAuthModes(response.data.authMethods !== undefined ?
-                    response.data.authMethods.filter(e => supportedHealthIdAuthModes.includes(e)) : []);
-            }
-            else
-            {
-                setShowError(true)
-                setErrorMessage("Abha address is not active");
+        setShowError(false);
+        setErrorMessage('');
+        const existingPatientId = await fetchPatientFromBahmniWithHealthId(abhaAddress);
+        const healthIdStatus = existingPatientId?.Error ? await getHealthIdStatus(existingPatientId.patientUuid) : false;
+        if (existingPatientId?.Error === undefined) {
+            if (healthIdStatus === true)
+                setHealthIdIsVoided(true);
+            else if (existingPatientId?.validPatient === true) {
+                setMatchingPatientFound(true);
+                setMatchingPatientUuid(existingPatientId.patientUuid);
+            } else {
+                const response = await searchAbhaAddress(abhaAddress);
+                setLoader(false);
+                setIsVerifyByAbhaAddress(true);
+                if (response.data !== undefined) {
+                    setIsVerifyThroughABHAService(true);
+                    if (response.data.status === activeStatus) {
+                        setShowAuthModes(true);
+                        setAuthModes(response.data.authMethods !== undefined ?
+                            response.data.authMethods.filter(e => supportedHealthIdAuthModes.includes(e)) : []);
+                    } else {
+                        setShowError(true)
+                        setErrorMessage(inactiveAbhaAddressError.error.message);
+                    }
+                }
             }
         }
         else {
             setShowError(true)
-            setErrorMessage(response.error.message);
+            setErrorMessage(existingPatientId.error.message);
         }
+        setLoader(false);
     }
 
     function getIfVaild(str){
@@ -157,6 +173,7 @@ const VerifyHealthId = () => {
     }
 
     async function handleScan(scannedData) {
+        setEnableABHACardView(false);
         if (scannedData != null) {
             var ndhmDetails = mapToNdhmDetails(scannedData)
             setScanningStatus(false);
@@ -288,7 +305,10 @@ const VerifyHealthId = () => {
             {isDemoAuth && !checkIfNotNull(ndhmDetails) && <DemoAuth id={abhaNumber} ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setBack={setBack}/>}
             {(isVerifyThroughABHASerice || isVerifyThroughMobileNumberEnabled) && checkIfNotNull(ndhmDetails) && ndhmDetails.id === undefined  && <CreateHealthId ndhmDetails={ndhmDetails} setNdhmDetails={setNdhmDetails} setIsHealthIdCreated={setIsHealthIdCreated} />}
             {!matchingPatientFound && !healthIdIsVoided && checkIfNotNull(ndhmDetails) && (ndhmDetails.id !== undefined || isHealthIdCreated || isVerifyABHAThroughFetchModes)
-             && <PatientDetails enableABHACardView={true} ndhmDetails={ndhmDetails} id={abhaNumber} setBack={setBack} isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated} isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
+                && <PatientDetails enableABHACardView={enableABHACardView} ndhmDetails={ndhmDetails} id={abhaNumber}
+                                   setBack={setBack}
+                                   isVerifyABHAThroughFetchModes={isVerifyABHAThroughFetchModes || !isHealthIdCreated}
+                                   isVerifyByAbhaAddress={isVerifyByAbhaAddress}/>}
         </div>
     );
 }

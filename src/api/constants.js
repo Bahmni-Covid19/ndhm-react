@@ -52,6 +52,16 @@ export const serviceUnavailableError = {
         "message": "Service Unavailable. Please try again later"
     }
 }
+export const abhaAddressUnavailableError = {
+    "error": {
+        "message": "Please enter ABHA Address."
+    }
+}
+export const inactiveAbhaAddressError = {
+    "error": {
+        "message": "Abha address is not active."
+    }
+}
 export const invalidHealthId = {
     "error": {
         "message": "Health Id/PHR Address is invalid. " +
@@ -76,3 +86,4 @@ export const openMrsDown = {
         "message": "OpenMRS-REST is Unhealthy,OpenMRS-FHIR is Unhealthy"
     }
 }
+export const activeStatus = "ACTIVE"
